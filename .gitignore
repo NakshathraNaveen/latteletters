@@ -45,3 +45,6 @@ next-env.d.ts
 
 # design inspiration images (other people's work, not used by the site)
 /inspo/
+
+.vercel
+.env*
