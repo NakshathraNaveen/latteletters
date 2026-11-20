@@ -275,10 +275,23 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-5 pt-28">
         <p className="font-serif text-2xl italic">the wall of</p>
         <h2 className="font-display text-5xl font-extrabold tracking-tighter md:text-6xl">love notes</h2>
-        <p className="mt-2 max-w-lg">
-          Little testimonies from fellow cafe-hoppers.{" "}
-          <span className="font-hand text-xl">(these are examples, real notes arrive with accounts soon!)</span>
-        </p>
+        <p className="mt-2 max-w-lg">Little testimonies from fellow cafe-hoppers. These are examples for now.</p>
+
+        {/* accounts coming soon */}
+        <div className="relative mt-8 flex flex-col gap-4 rounded-3xl border-2 border-dashed border-cola bg-lemon/80 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-label text-xs uppercase tracking-[0.2em]">coming soon ✦</p>
+            <p className="mt-1 font-display text-3xl">your latteletters account</p>
+            <p className="mt-1 max-w-xl">
+              Accounts are almost ready! Soon you&rsquo;ll be able to pin your own love notes, save favourite cafes and fill up your
+              coffee passport.
+            </p>
+          </div>
+          <span className="inline-block shrink-0 -rotate-6 self-start rounded-full border-[3px] border-ink bg-lime px-5 py-2 font-display text-xl shadow-[3px_4px_0_rgb(43_42_46/0.85)] sm:self-center">
+            opening soon!
+          </span>
+        </div>
+
         <ul data-fx="drop" className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {NOTES.map((n) => (
             <li
@@ -288,7 +301,7 @@ export default function Home() {
               style={{ transform: `rotate(${n.r}deg)` }}
             >
               <span className="tape -top-3 left-1/2 -translate-x-1/2 rotate-2" />
-              <p className="font-hand text-2xl leading-tight">{n.text}</p>
+              <p className="font-note text-2xl leading-snug">{n.text}</p>
               <p className="mt-3 text-sm font-semibold">{n.who}</p>
             </li>
           ))}

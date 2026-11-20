@@ -82,7 +82,7 @@ export function MoodFolders({ folders }: { folders: MoodFolder[] }) {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <p className="font-hand text-2xl leading-snug md:text-3xl">{f.note}</p>
+                  <p className="font-note text-2xl leading-snug md:text-3xl">{f.note}</p>
                 </div>
 
                 {/* polaroid */}

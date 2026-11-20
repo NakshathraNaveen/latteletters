@@ -37,6 +37,14 @@ export const railey = localFont({
   display: "swap",
 });
 
+/** Everyday handwriting — the handwritten notes (love notes, folder notes) */
+export const dailyHandwritten = localFont({
+  src: "../fonts/daily-handwritten/daily-handwritten.otf",
+  variable: "--font-dailyhand",
+  weight: "100 900",
+  display: "swap",
+});
+
 /** Clean all-caps geometric — labels, tabs, nav */
 export const lemonMilk = localFont({
   src: [
@@ -85,6 +93,6 @@ export const bricolage = Bricolage_Grotesque({
   weight: ["700", "800"],
 });
 
-export const fontVariables = [cheesel, aston, railey, lemonMilk, rollergirls, specialElite, silkscreen, dmSans, bricolage]
+export const fontVariables = [cheesel, aston, railey, dailyHandwritten, lemonMilk, rollergirls, specialElite, silkscreen, dmSans, bricolage]
   .map((f) => f.variable)
   .join(" ");

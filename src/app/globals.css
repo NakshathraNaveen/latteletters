@@ -15,6 +15,7 @@
   --font-display: var(--font-cheesel), var(--font-bricolage), ui-sans-serif, system-ui, sans-serif; /* Cheesel */
   --font-serif: var(--font-aston), Georgia, serif; /* Aston Script */
   --font-hand: var(--font-railey), "Comic Sans MS", cursive; /* Railey */
+  --font-note: var(--font-dailyhand), var(--font-railey), cursive; /* Daily Handwritten */
   --font-label: var(--font-lemonmilk), ui-sans-serif, system-ui, sans-serif; /* Lemon Milk */
   --font-retro: var(--font-rollergirls), var(--font-cheesel), sans-serif; /* Rollergirls */
   --font-sans: var(--font-dmsans), ui-sans-serif, system-ui, sans-serif;
