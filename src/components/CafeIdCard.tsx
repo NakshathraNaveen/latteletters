@@ -1,0 +1,137 @@
+/**
+ * "Cafe ID" card (PRD §8.4): binder clip, stamp-framed drink, barcode.
+ * Swings on its clip on hover (§8.5 results grid).
+ */
+import Link from "next/link";
+import type { Cafe } from "@/lib/types";
+import type { DrinkId } from "@/lib/drinks";
+import { VIBES } from "@/lib/vibes";
+import { DrinkCup } from "./DrinkCup";
+import { BinderClip } from "./decor";
+
+export const ACCENT_BG: Record<Cafe["accent"], string> = {
+  hotpink: "bg-hotpink",
+  lavender: "bg-lavender",
+  olive: "bg-[#c5d28a]",
+  lime: "bg-lime",
+  lemon: "bg-lemon",
+};
+
+/** Pick an illustration that fits the kind of cafe (OSM has no photos). */
+export function cafeDrink(cafe: Cafe): DrinkId {
+  const c = cafe.cuisine;
+  if (c.includes("bubble_tea")) return "bubble-tea";
+  if (c.includes("tea") || c.includes("japanese")) return "matcha-latte";
+  if (c.some((x) => ["ice_cream", "gelato", "dessert", "cake"].includes(x))) return "affogato";
+  const pool: DrinkId[] = ["iced-latte", "latte", "cappuccino", "cold-brew", "flat-white", "mocha"];
+  return pool[[...cafe.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % pool.length];
+}
+
+export function formatDistance(km?: number) {
+  if (km === undefined) return null;
+  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(km < 10 ? 1 : 0)} km`;
+}
+
+export function placeLine(cafe: Cafe) {
+  return [cafe.neighbourhood, cafe.city].filter(Boolean).join(", ") || cafe.country || "";
+}
+
+/** Deterministic fake barcode from the cafe id. */
+export function Barcode({ seed, className = "" }: { seed: string; className?: string }) {
+  let h = [...seed].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const bars: number[] = [];
+  for (let i = 0; i < 34; i++) {
+    h = (h * 1103515245 + 12345) >>> 0;
+    bars.push(1 + (h % 3));
+  }
+  let x = 0;
+  return (
+    <svg aria-hidden viewBox="0 0 120 30" preserveAspectRatio="none" className={className}>
+      {bars.map((w, i) => {
+        const rect = i % 2 === 0 ? <rect key={i} x={x} y="0" width={w * 0.9} height="30" fill="var(--color-ink)" /> : null;
+        x += w * 1.2;
+        return rect;
+      })}
+    </svg>
+  );
+}
+
+export function CafeIdCard({ cafe, reasons, index = 0 }: { cafe: Cafe; reasons?: string[]; index?: number }) {
+  const tilt = [-1.5, 1.2, -0.8, 1.8, -1.2, 0.8][index % 6];
+  const distance = formatDistance(cafe.distanceKm);
+  const place = placeLine(cafe);
+
+  return (
+    <article data-fx-item className="relative pt-7" style={{ transform: `rotate(${tilt}deg)` }}>
+      <div className="swing relative">
+        <BinderClip className="absolute -top-7 left-1/2 z-10 w-16 -translate-x-1/2" />
+        <div
+          className={`paper relative overflow-hidden rounded-2xl border-2 border-cola/80 p-4 shadow-[var(--shadow-paper)] transition-shadow hover:shadow-[var(--shadow-lift)] ${ACCENT_BG[cafe.accent]}`}
+        >
+          {distance && (
+            <span className="absolute right-3 top-3 rounded-full border border-cola/60 bg-lemon/80 px-2 py-0.5 font-label text-[9px] uppercase tracking-widest">
+              {distance}
+            </span>
+          )}
+
+          <div className="flex gap-4">
+            <div className="shrink-0">
+              <div className="stamp w-24 rotate-[-3deg] shadow-sm">
+                <div className="grid aspect-[4/5] place-items-center bg-cotton-deep">
+                  <DrinkCup drink={cafeDrink(cafe)} className="h-[85%] w-auto" />
+                </div>
+              </div>
+              <Barcode seed={cafe.id} className="mt-2 h-6 w-24" />
+            </div>
+
+            <div className="min-w-0 flex-1 pt-1">
+              <p className="font-hand text-xl leading-none text-cola/80">your new favourite</p>
+              <h3 className="mt-1 break-words font-display text-2xl leading-[0.95] text-cola">
+                {/* stretched link — the whole card is clickable */}
+                <Link href={`/cafe/${cafe.id}`} className="after:absolute after:inset-0 after:content-['']">
+                  {cafe.name}
+                </Link>
+              </h3>
+              <dl className="mt-2 space-y-0.5 font-mono text-[13px]">
+                {cafe.street && (
+                  <div className="flex gap-1">
+                    <dt className="sr-only">Address</dt>
+                    <dd>{cafe.street}</dd>
+                  </div>
+                )}
+                {place && (
+                  <div className="flex gap-1">
+                    <dt className="font-semibold">Where:</dt>
+                    <dd>{place}</dd>
+                  </div>
+                )}
+                <div className="flex gap-1">
+                  <dt className="font-semibold">Kind:</dt>
+                  <dd>{cafe.brand ? `${cafe.brand} (chain)` : "independent ✦"}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          {cafe.tags.length > 0 && (
+            <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Vibes">
+              {cafe.tags.slice(0, 4).map((t) => (
+                <li key={t} className="rounded-full bg-cola px-2.5 py-0.5 text-xs font-semibold text-cotton">
+                  {VIBES[t].label}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {reasons && reasons.length > 0 && (
+            <p className="mt-3 border-t-2 border-dashed border-cola/30 pt-2 font-hand text-lg leading-tight text-cola">
+              <span aria-hidden>↳ </span>
+              <span className="sr-only">Matched because: </span>
+              {reasons.join(" · ")}
+            </p>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
