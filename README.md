@@ -16,7 +16,7 @@ Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me
 - **"Why this matched"** on every result ("has wifi", "open late", "tea spot"), plus a friendly empty state.
 - **Folder-tab distance picker**: walkable (1 km), short ride (3 km), worth the trip (8 km).
 - **Cafe pages**: ID card with address and opening hours, amenities, social links with click tracking, an OpenStreetMap embed, directions, and an "edit on OpenStreetMap" link for corrections.
-- **Accounts (passwordless)**: log in with an emailed one-time link, then pick a username and a drink-cup avatar. Public profiles live at `/u/<username>` with a "regular" badge. "Delete my account" removes every post and photo.
+- **Accounts (passwordless)**: log in with an emailed one-time link, then pick a username and design a cup avatar (cup style incl. kulhad and cutting chai glass, drink, colour and pattern). Public profiles live at `/u/<username>` with a "regular" badge. "Delete my account" removes every post and photo.
 - **Reviews & love notes**: a star rating, the drink you ordered, vibe tags and up to 3 photos, or a short sticky-note "love note". You can edit and delete your own, and they appear instantly thanks to tag-based cache invalidation.
 - **Private by default**: photos are resized in the browser before upload, which strips EXIF/GPS metadata. Emails are never shown.
 - **Moderation**:

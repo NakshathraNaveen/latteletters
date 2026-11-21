@@ -86,7 +86,6 @@ export async function profileWithPosts(username: string): Promise<{ profile: Pub
 
 export const drinkName = (drink: string | null) => (drink ? (DRINKS[drink as DrinkId]?.name ?? drink) : null);
 export const isDrinkId = (v: string): v is DrinkId => v in DRINKS;
-export const avatarDrink = (avatar: string): DrinkId => (isDrinkId(avatar) ? avatar : "iced-latte");
 export const photoUrls = (paths: string[]) => paths.map(photoUrl);
 
 export const RECENT_TAG = "posts:recent";

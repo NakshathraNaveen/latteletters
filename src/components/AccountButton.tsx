@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { avatarDrink } from "@/lib/posts";
-import { DrinkCup } from "./DrinkCup";
+import { UserAvatar } from "./CupAvatar";
 
 const pill =
   "inline-flex items-center gap-1.5 rounded-full border-2 border-cola bg-lemon px-3 py-1 font-label text-[11px] uppercase tracking-wider shadow-[2px_2px_0_var(--color-cola)] transition hover:bg-hotpink";
@@ -18,7 +17,7 @@ export async function AccountButton() {
     );
   return (
     <Link href="/settings" className={pill} aria-label={`Your account, @${user.profile.username}`}>
-      <DrinkCup drink={avatarDrink(user.profile.avatar)} className="h-5 w-auto" />
+      <UserAvatar avatar={user.profile.avatar} className="h-5 w-auto" />
       <span className="max-w-24 truncate normal-case tracking-normal">@{user.profile.username}</span>
     </Link>
   );

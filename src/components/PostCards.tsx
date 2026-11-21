@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { avatarDrink, drinkName, type Post } from "@/lib/posts";
+import { drinkName, type Post } from "@/lib/posts";
 import { photoUrl } from "@/lib/supabase/public";
 import { VIBES, type VibeId } from "@/lib/vibes";
-import { DrinkCup } from "./DrinkCup";
+import { UserAvatar } from "./CupAvatar";
 
 /** Stable little tilt per post so the wall looks hand-pinned. */
 export function tilt(id: string, max = 3) {
@@ -30,7 +30,7 @@ function Byline({ post, showCafe }: { post: Post; showCafe?: boolean }) {
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
       <Link href={`/u/${post.author.username}`} className="inline-flex items-center gap-1.5 font-semibold underline-offset-4 hover:underline">
-        <DrinkCup drink={avatarDrink(post.author.avatar)} className="h-6 w-auto" />@{post.author.username}
+        <UserAvatar avatar={post.author.avatar} className="h-6 w-auto" />@{post.author.username}
       </Link>
       {showCafe && (
         <>

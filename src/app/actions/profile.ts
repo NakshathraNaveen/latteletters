@@ -4,7 +4,8 @@ import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireProfile, requireUser, safeNext } from "@/lib/auth";
 import { isProfane } from "@/lib/moderation";
-import { isDrinkId, postsTag, RECENT_TAG, userTag } from "@/lib/posts";
+import { parseCup } from "@/lib/avatar";
+import { postsTag, RECENT_TAG, userTag } from "@/lib/posts";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { PHOTO_BUCKET } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -25,7 +26,7 @@ export async function saveProfile(_: FormState, form: FormData): Promise<FormSta
   if (!/^[a-z0-9_]{3,20}$/.test(username)) return { error: "Usernames are 3–20 letters, numbers or underscores." };
   if (RESERVED.has(username) && !user.profile?.isAdmin) return { error: "That username is reserved. Try another!" };
   if (isProfane(username.replace(/_/g, " "))) return { error: "Let's keep usernames sweet. Try another!" };
-  if (!isDrinkId(avatar)) return { error: "Pick a cup for your avatar." };
+  if (!parseCup(avatar)) return { error: "Pick a cup for your avatar." };
 
   const old = user.profile?.username;
   const { error } = await supabaseAdmin().from("profiles").upsert({ id: user.id, username, avatar }, { onConflict: "id" });

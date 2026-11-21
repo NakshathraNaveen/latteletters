@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { DrinkCup } from "@/components/DrinkCup";
+import { UserAvatar } from "@/components/CupAvatar";
 import { DripLoader } from "@/components/DripLoader";
 import { PostActions } from "@/components/PostActions";
 import { PostCard } from "@/components/PostCards";
 import { ViewerProvider } from "@/components/Viewer";
 import { BinderClip, Sticker } from "@/components/decor";
 import { getViewer } from "@/lib/auth";
-import { avatarDrink, profileWithPosts } from "@/lib/posts";
+import { profileWithPosts } from "@/lib/posts";
 
 const USERNAME = /^[a-z0-9_]{3,20}$/;
 
@@ -49,7 +49,7 @@ async function Profile({ params }: { params: PageProps<"/u/[username]">["params"
           <div className="paper flex items-center gap-5 rounded-3xl border-2 border-cola bg-lemon p-6 shadow-[var(--shadow-lift)]">
             <div className="stamp w-24 shrink-0 rotate-3">
               <div className="grid aspect-[4/5] place-items-center bg-cotton-deep">
-                <DrinkCup drink={avatarDrink(profile.avatar)} className="h-[85%] w-auto" />
+                <UserAvatar avatar={profile.avatar} label className="h-[85%] w-auto" />
               </div>
             </div>
             <div className="min-w-0">
