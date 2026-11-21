@@ -59,6 +59,14 @@ export function SiteFooter() {
             </a>
           </p>
         </div>
+        <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+          <a href="/privacy" className="underline underline-offset-4">
+            Privacy
+          </a>
+          <a href="/privacy#guidelines" className="underline underline-offset-4">
+            Community guidelines
+          </a>
+        </p>
       </div>
 
       {/* scroll-triggered motion for the whole site */}

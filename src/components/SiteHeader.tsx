@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { AccountButton } from "./AccountButton";
 import { SearchBar } from "./SearchBar";
 import { Sparkle } from "./decor";
 
@@ -57,7 +59,12 @@ export function SiteHeader() {
               </Link>
             </li>
           </ul>
-          <LatteLevel />
+          <div className="flex items-center gap-3">
+            <Suspense fallback={<span aria-hidden className="inline-block h-7 w-16 rounded-full border-2 border-cola/20" />}>
+              <AccountButton />
+            </Suspense>
+            <LatteLevel />
+          </div>
         </nav>
         <div className="hidden md:block">
           <SearchBar variant="compact" />

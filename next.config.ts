@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
         hostname: "5ogkncz8mgraqdcd.public.blob.vercel-storage.com",
         pathname: "/images/**",
       },
+      {
+        // review photos (Supabase Storage)
+        protocol: "https",
+        hostname: "gmcgukffsqzcgiwnznqf.supabase.co",
+        pathname: "/storage/v1/object/public/review-photos/**",
+      },
     ],
   },
   turbopack: {

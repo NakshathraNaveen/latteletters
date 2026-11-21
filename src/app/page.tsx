@@ -8,7 +8,9 @@ import { Polaroid } from "@/components/Polaroid";
 import { SearchBar } from "@/components/SearchBar";
 import { LaceDivider, MetalStar, PaperStar, Sparkle, Sticker } from "@/components/decor";
 import { MoodFolders, type MoodFolder } from "@/components/MoodFolders";
+import { PostCard } from "@/components/PostCards";
 import { DRINKS, type DrinkId } from "@/lib/drinks";
+import { recentPosts, type Post } from "@/lib/posts";
 import { POPULAR_PLACES } from "@/lib/places";
 import { MOOD_FOLDERS, VIBES } from "@/lib/vibes";
 
@@ -275,23 +277,50 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-5 pt-28">
         <p className="font-serif text-2xl italic">the wall of</p>
         <h2 className="font-display text-5xl font-extrabold tracking-tighter md:text-6xl">love notes</h2>
-        <p className="mt-2 max-w-lg">Little testimonies from fellow cafe-hoppers. These are examples for now.</p>
+        <p className="mt-2 max-w-lg">Little testimonies from fellow cafe-hoppers, fresh off the wall.</p>
 
-        {/* accounts coming soon */}
+        {/* accounts are open */}
         <div className="relative mt-8 flex flex-col gap-4 rounded-3xl border-2 border-dashed border-cola bg-lemon/80 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-label text-xs uppercase tracking-[0.2em]">coming soon ✦</p>
+            <p className="font-label text-xs uppercase tracking-[0.2em]">now open ✦</p>
             <p className="mt-1 font-display text-3xl">your latteletters account</p>
             <p className="mt-1 max-w-xl">
-              Accounts are almost ready! Soon you&rsquo;ll be able to pin your own love notes, save favourite cafes and fill up your
-              coffee passport.
+              Review the cafes you love, pin love notes with photos, and build your own profile. One email, no passwords.
             </p>
           </div>
-          <span className="inline-block shrink-0 -rotate-6 self-start rounded-full border-[3px] border-ink bg-lime px-5 py-2 font-display text-xl shadow-[3px_4px_0_rgb(43_42_46/0.85)] sm:self-center">
-            opening soon!
-          </span>
+          <Link
+            href="/login"
+            className="inline-block shrink-0 -rotate-6 self-start rounded-full border-[3px] border-ink bg-lime px-5 py-2 font-display text-xl shadow-[3px_4px_0_rgb(43_42_46/0.85)] transition hover:rotate-0 sm:self-center"
+          >
+            join in ✦
+          </Link>
         </div>
 
+        <HomeWall />
+      </section>
+    </>
+  );
+}
+
+/** The newest real posts, or the example notes until there are some. */
+async function HomeWall() {
+  let posts: Post[] = [];
+  try {
+    posts = await recentPosts(4);
+  } catch {
+    // fall back to the examples
+  }
+  if (posts.length)
+    return (
+      <ul data-fx="drop" className="mt-10 grid items-start gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {posts.map((p) => (
+          <li key={p.id} data-fx-item>
+            <PostCard post={p} showCafe />
+          </li>
+        ))}
+      </ul>
+    );
+  return (
         <ul data-fx="drop" className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {NOTES.map((n) => (
             <li
@@ -306,7 +335,5 @@ export default function Home() {
             </li>
           ))}
         </ul>
-      </section>
-    </>
   );
 }

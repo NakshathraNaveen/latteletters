@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { ACCENT_BG, Barcode, CafeIdCard, cafeDrink, placeLine } from "@/components/CafeIdCard";
 import { DrinkCup } from "@/components/DrinkCup";
 import { DripLoader } from "@/components/DripLoader";
+import { NotesWall } from "@/components/NotesWall";
 import { SocialLinks } from "@/components/SocialLinks";
 import { BinderClip, LaceDivider, MetalStar } from "@/components/decor";
 import { cafeById, cafesNear, distanceKm, roundCoord } from "@/lib/osm";
@@ -228,14 +229,14 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
         </section>
       </div>
 
-      {/* ─────────── reviews placeholder (Phase 2) ─────────── */}
-      <section aria-labelledby="notes" className="mt-20 rounded-3xl bg-cola p-8 text-cotton">
-        <h2 id="notes" className="font-display text-3xl">
+      {/* ─────────── reviews + love notes (Phase 2) ─────────── */}
+      <section aria-labelledby="notes" className="mt-20 scroll-mt-24 rounded-3xl bg-cola p-6 text-cotton sm:p-8" id="love-notes">
+        <h2 id="notes" className="font-display text-3xl md:text-4xl">
           love notes for {cafe.name}
         </h2>
-        <p className="mt-2 max-w-lg">
-          Reviews and testimonies are coming when accounts launch. Soon you&rsquo;ll be able to pin a sticky note right here.
-        </p>
+        <Suspense fallback={<p className="mt-4 font-hand text-2xl">unpinning the notes…</p>}>
+          <NotesWall cafeId={cafe.id} cafeName={cafe.name} />
+        </Suspense>
       </section>
 
       {/* ─────────── nearby ─────────── */}
