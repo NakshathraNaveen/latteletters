@@ -16,12 +16,12 @@ export function Polaroid({
   return (
     <figure
       {...rest}
-      className={`relative bg-lemon p-3 pb-2 shadow-[var(--shadow-paper)] ${className}`}
+      className={`relative bg-lemon p-1.5 pb-1 shadow-[var(--shadow-paper)] sm:p-3 sm:pb-2 ${className}`}
       style={{ transform: `rotate(${rotate}deg)`, ...rest.style }}
     >
       {tape && <span className="tape -top-3 left-1/2 -translate-x-1/2 rotate-[-4deg]" />}
       <div className="overflow-hidden bg-cotton-deep">{children}</div>
-      {caption && <figcaption className="pt-2 text-center font-hand text-xl leading-tight text-cola">{caption}</figcaption>}
+      {caption && <figcaption className="pt-1 text-center font-hand text-sm leading-tight text-cola sm:pt-2 sm:text-xl">{caption}</figcaption>}
     </figure>
   );
 }

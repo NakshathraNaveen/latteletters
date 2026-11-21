@@ -62,37 +62,37 @@ export function CafeIdCard({ cafe, reasons, index = 0 }: { cafe: Cafe; reasons?:
   const place = placeLine(cafe);
 
   return (
-    <article data-fx-item className="relative pt-7" style={{ transform: `rotate(${tilt}deg)` }}>
+    <article data-fx-item className="relative pt-5 sm:pt-7" style={{ transform: `rotate(${tilt}deg)` }}>
       <div className="swing relative">
-        <BinderClip className="absolute -top-7 left-1/2 z-10 w-16 -translate-x-1/2" />
+        <BinderClip className="absolute -top-5 left-1/2 z-10 w-11 -translate-x-1/2 sm:-top-7 sm:w-16" />
         <div
-          className={`paper relative overflow-hidden rounded-2xl border-2 border-cola/80 p-4 shadow-[var(--shadow-paper)] transition-shadow hover:shadow-[var(--shadow-lift)] ${ACCENT_BG[cafe.accent]}`}
+          className={`paper relative overflow-hidden rounded-2xl border-2 border-cola/80 p-2.5 shadow-[var(--shadow-paper)] sm:p-4 transition-shadow hover:shadow-[var(--shadow-lift)] ${ACCENT_BG[cafe.accent]}`}
         >
           {distance && (
-            <span className="absolute right-3 top-3 rounded-full border border-cola/60 bg-lemon/80 px-2 py-0.5 font-label text-[9px] uppercase tracking-widest">
+            <span className="absolute right-2 top-2 rounded-full border border-cola/60 bg-lemon/80 px-1.5 py-0.5 font-label text-[8px] sm:right-3 sm:top-3 sm:px-2 sm:text-[9px] uppercase tracking-widest">
               {distance}
             </span>
           )}
 
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4">
             <div className="shrink-0">
-              <div className="stamp w-24 rotate-[-3deg] shadow-sm">
+              <div className="stamp w-12 rotate-[-3deg] shadow-sm sm:w-24">
                 <div className="grid aspect-[4/5] place-items-center bg-cotton-deep">
                   <DrinkCup drink={cafeDrink(cafe)} className="h-[85%] w-auto" />
                 </div>
               </div>
-              <Barcode seed={cafe.id} className="mt-2 h-6 w-24" />
+              <Barcode seed={cafe.id} className="mt-2 hidden h-6 w-24 sm:block" />
             </div>
 
-            <div className="min-w-0 flex-1 pt-1">
-              <p className="font-hand text-xl leading-none text-cola/80">your new favourite</p>
-              <h3 className="mt-1 break-words font-display text-2xl leading-[0.95] text-cola">
+            <div className="min-w-0 flex-1 sm:pt-1">
+              <p className="font-hand text-sm leading-none text-cola/80 sm:text-xl">your new favourite</p>
+              <h3 className="mt-1 break-words font-display text-lg leading-[0.95] text-cola sm:text-2xl">
                 {/* stretched link — the whole card is clickable */}
                 <Link href={`/cafe/${cafe.id}`} className="after:absolute after:inset-0 after:content-['']">
                   {cafe.name}
                 </Link>
               </h3>
-              <dl className="mt-2 space-y-0.5 font-mono text-[13px]">
+              <dl className="mt-1.5 space-y-0.5 font-mono text-[10px] leading-snug sm:mt-2 sm:text-[13px]">
                 {cafe.street && (
                   <div className="flex gap-1">
                     <dt className="sr-only">Address</dt>
@@ -105,7 +105,7 @@ export function CafeIdCard({ cafe, reasons, index = 0 }: { cafe: Cafe; reasons?:
                     <dd>{place}</dd>
                   </div>
                 )}
-                <div className="flex gap-1">
+                <div className="hidden gap-1 sm:flex">
                   <dt className="font-semibold">Kind:</dt>
                   <dd>{cafe.brand ? `${cafe.brand} (chain)` : "independent ✦"}</dd>
                 </div>
@@ -114,9 +114,9 @@ export function CafeIdCard({ cafe, reasons, index = 0 }: { cafe: Cafe; reasons?:
           </div>
 
           {cafe.tags.length > 0 && (
-            <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Vibes">
+            <ul className="mt-2 flex flex-wrap gap-1 sm:mt-3 sm:gap-1.5" aria-label="Vibes">
               {cafe.tags.slice(0, 4).map((t) => (
-                <li key={t} className="rounded-full bg-cola px-2.5 py-0.5 text-xs font-semibold text-cotton">
+                <li key={t} className="rounded-full bg-cola px-1.5 py-0.5 text-[10px] font-semibold text-cotton sm:px-2.5 sm:text-xs">
                   {VIBES[t].label}
                 </li>
               ))}
@@ -124,7 +124,7 @@ export function CafeIdCard({ cafe, reasons, index = 0 }: { cafe: Cafe; reasons?:
           )}
 
           {reasons && reasons.length > 0 && (
-            <p className="mt-3 border-t-2 border-dashed border-cola/30 pt-2 font-hand text-lg leading-tight text-cola">
+            <p className="mt-2 border-t-2 border-dashed border-cola/30 pt-1.5 font-hand text-sm leading-tight text-cola sm:mt-3 sm:pt-2 sm:text-lg">
               <span aria-hidden>↳ </span>
               <span className="sr-only">Matched because: </span>
               {reasons.join(" · ")}

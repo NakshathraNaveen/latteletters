@@ -266,7 +266,7 @@ async function Nearby({ cafe }: { cafe: Cafe }) {
     .slice(0, 3);
   if (!picks.length) return <p className="mt-6 font-hand text-2xl">no other mapped cafes within a kilometre!</p>;
   return (
-    <div data-fx="rise" className="mt-8 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+    <div data-fx="rise" className="mt-8 grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-3">
       {picks.map((c, i) => (
         <CafeIdCard key={c.id} cafe={c} index={i} />
       ))}

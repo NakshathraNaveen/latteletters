@@ -35,14 +35,15 @@ function LatteLevel() {
   );
 }
 
-/** Header (FR-1): logo + compact search on every page. */
+/** Header (FR-1): logo, nav, account and compact search on every page.
+ *  Phones get the same pieces in two tidy rows; nothing wraps mid-label. */
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b-2 border-cola/15 bg-cotton/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-3">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2.5 sm:px-5 sm:py-3">
         <Logo />
-        <nav aria-label="Main" className="order-3 flex w-full items-center justify-between gap-4 sm:order-none sm:w-auto">
-          <ul className="flex gap-4 font-label text-[11px] uppercase tracking-wider">
+        <nav aria-label="Main" className="order-3 w-full sm:order-none sm:w-auto">
+          <ul className="flex justify-between gap-3 whitespace-nowrap font-label text-[11px] uppercase tracking-wider sm:justify-start sm:gap-4">
             <li>
               <Link href="/search" className="underline-offset-4 hover:underline">
                 find cafes
@@ -59,13 +60,23 @@ export function SiteHeader() {
               </Link>
             </li>
           </ul>
-          <div className="flex items-center gap-3">
-            <Suspense fallback={<span aria-hidden className="inline-block h-7 w-16 rounded-full border-2 border-cola/20" />}>
-              <AccountButton />
-            </Suspense>
-            <LatteLevel />
-          </div>
         </nav>
+        <div className="flex items-center gap-3 whitespace-nowrap">
+          <Link
+            href="/search"
+            aria-label="Search cafes"
+            className="grid size-8 place-items-center rounded-full border-2 border-cola bg-lemon shadow-[2px_2px_0_var(--color-cola)] md:hidden"
+          >
+            <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="M15.5 15.5 L21 21" />
+            </svg>
+          </Link>
+          <Suspense fallback={<span aria-hidden className="inline-block h-7 w-16 rounded-full border-2 border-cola/20" />}>
+            <AccountButton />
+          </Suspense>
+          <LatteLevel />
+        </div>
         <div className="hidden md:block">
           <SearchBar variant="compact" />
         </div>

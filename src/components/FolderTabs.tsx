@@ -24,12 +24,12 @@ export function FolderTabs({ tabs, label }: { tabs: FolderTab[]; label: string }
             <Link
               href={t.href}
               aria-current={t.active ? "page" : undefined}
-              className={`paper relative block whitespace-nowrap rounded-t-2xl border-2 border-b-0 border-cola/70 px-5 pb-3 pt-2 font-label text-xs font-medium uppercase tracking-wider shadow-[0_-2px_6px_rgb(71_19_28/0.15)] transition-transform duration-300 hover:-translate-y-1.5 ${
+              className={`paper relative block whitespace-nowrap rounded-t-2xl border-2 border-b-0 border-cola/70 px-3 pb-3 pt-2 font-label text-[10px] font-medium uppercase tracking-wider sm:px-5 sm:text-xs shadow-[0_-2px_6px_rgb(71_19_28/0.15)] transition-transform duration-300 hover:-translate-y-1.5 ${
                 FOLDER_COLOURS[i % FOLDER_COLOURS.length]
               } ${t.active ? "-translate-y-3 pb-5" : ""}`}
             >
               {t.label}
-              {t.note && <span className="ml-1.5 font-hand text-base font-normal normal-case opacity-80">({t.note})</span>}
+              {t.note && <span className="ml-1.5 hidden font-hand text-base font-normal normal-case opacity-80 sm:inline">({t.note})</span>}
             </Link>
           </li>
         ))}

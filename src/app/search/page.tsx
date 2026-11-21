@@ -134,7 +134,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
           )}
           {shown.length > 0 ? (
             <>
-              <div data-fx="rise" className="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+              <div data-fx="rise" className="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-3">
                 {shown.map((res, i) => (
                   <CafeIdCard key={res.cafe.id} cafe={res.cafe} reasons={q ? res.reasons : undefined} index={i} />
                 ))}

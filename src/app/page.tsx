@@ -75,7 +75,7 @@ export default function Home() {
               </span>
               <span className="block overflow-hidden pb-1">
                 <span data-fx-word className="relative inline-block">
-                  <span className="font-serif font-normal italic">cup</span>
+                  <span className="text-hotpink [-webkit-text-stroke:2px_var(--color-cola)] [paint-order:stroke_fill]">cup</span>
                   {/* hand-drawn circle around "cup" */}
                   <svg aria-hidden viewBox="0 0 200 90" className="absolute -inset-x-4 -inset-y-2 h-[calc(100%+1rem)] w-[calc(100%+2rem)] overflow-visible">
                     <path
@@ -117,7 +117,7 @@ export default function Home() {
           </div>
 
           {/* poster collage: echoing words behind a floating cut-out drink */}
-          <div aria-hidden className="relative mx-auto aspect-[4/5] w-full max-w-md select-none max-md:overflow-x-clip">
+          <div aria-hidden className="relative mx-auto aspect-[4/5] w-full max-w-[18rem] select-none max-md:overflow-x-clip sm:max-w-md">
             <div className="absolute inset-0 flex flex-col justify-center gap-0 font-display font-extrabold leading-[0.8] tracking-tighter text-hotpink">
               {["iced latte", "iced latte", "iced latte", "iced latte"].map((w, i) => (
                 <span key={i} data-par-x className="block">
@@ -134,7 +134,7 @@ export default function Home() {
             <div data-fx-cup className="absolute inset-0 grid place-items-center">
               <div data-par-cup>
                 <div className="animate-float">
-                  <DrinkCup drink="iced-latte" className="h-[22rem] w-auto drop-shadow-[0_24px_30px_rgb(71_19_28/0.35)] md:h-[26rem]" />
+                  <DrinkCup drink="iced-latte" className="h-[17rem] w-auto drop-shadow-[0_24px_30px_rgb(71_19_28/0.35)] sm:h-[22rem] md:h-[26rem]" />
                 </div>
               </div>
             </div>
@@ -197,9 +197,9 @@ export default function Home() {
               strokeLinecap="round"
             />
           </svg>
-          <ol data-fx="pin" className="relative mt-14 grid gap-12 sm:grid-cols-3 sm:gap-8">
+          <ol data-fx="pin" className="relative mt-10 grid grid-cols-3 gap-3 sm:mt-14 sm:gap-8">
             {HOW_IT_WORKS.map((step, i) => (
-              <li key={step.caption} data-fx-item className={i === 1 ? "sm:mt-10" : ""}>
+              <li key={step.caption} data-fx-item className={i === 1 ? "mt-6 sm:mt-10" : ""}>
                 <Polaroid rotate={[-4, 3, -2][i]} caption={<><b>{i + 1}.</b> {step.caption}</>}>
                   {step.image ? (
                     <div className="relative aspect-square">
@@ -207,7 +207,7 @@ export default function Home() {
                         src={step.image}
                         alt={step.alt}
                         fill
-                        sizes="(min-width: 640px) 33vw, 90vw"
+                        sizes="33vw"
                         className="object-cover"
                         style={{ objectPosition: step.focus }}
                       />
@@ -236,7 +236,7 @@ export default function Home() {
           <NearMeButton />
         </div>
 
-        <ul data-fx="rise" className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+        <ul data-fx="rise" className="mt-10 grid grid-cols-3 gap-3 sm:gap-6 lg:grid-cols-4">
           {POPULAR_PLACES.map((p, i) => (
             <li key={p} data-fx-item>
               <Link
@@ -245,9 +245,9 @@ export default function Home() {
                 style={{ transform: `rotate(${[-2, 1.5, -1, 2, -1.5, 1][i % 6]}deg)` }}
               >
                 <div className="stamp shadow-[var(--shadow-paper)]">
-                  <div className={`flex aspect-[4/3] flex-col items-center justify-center gap-1 p-3 text-center ${STAMP_BG[i % STAMP_BG.length]}`}>
-                    <DrinkCup drink={STAMP_DRINKS[i % STAMP_DRINKS.length]} className="h-14 w-auto transition-transform group-hover:rotate-6" />
-                    <span className="font-display text-xl leading-none">{p.split(",")[0]}</span>
+                  <div className={`flex aspect-[4/3] flex-col items-center justify-center gap-1 p-1.5 text-center sm:p-3 ${STAMP_BG[i % STAMP_BG.length]}`}>
+                    <DrinkCup drink={STAMP_DRINKS[i % STAMP_DRINKS.length]} className="h-9 w-auto transition-transform group-hover:rotate-6 sm:h-14" />
+                    <span className="font-display text-sm leading-none sm:text-xl">{p.split(",")[0]}</span>
                   </div>
                 </div>
               </Link>
@@ -321,17 +321,17 @@ async function HomeWall() {
       </ul>
     );
   return (
-        <ul data-fx="drop" className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <ul data-fx="drop" className="mt-10 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
           {NOTES.map((n) => (
             <li
               key={n.text}
               data-fx-item
-              className={`paper relative min-h-48 p-5 pt-7 shadow-[var(--shadow-paper)] ${n.tone}`}
+              className={`paper relative min-h-40 p-3.5 pt-6 shadow-[var(--shadow-paper)] sm:min-h-48 sm:p-5 sm:pt-7 ${n.tone}`}
               style={{ transform: `rotate(${n.r}deg)` }}
             >
               <span className="tape -top-3 left-1/2 -translate-x-1/2 rotate-2" />
-              <p className="font-note text-2xl leading-snug">{n.text}</p>
-              <p className="mt-3 text-sm font-semibold">{n.who}</p>
+              <p className="font-note text-lg leading-snug sm:text-2xl">{n.text}</p>
+              <p className="mt-3 text-xs font-semibold sm:text-sm">{n.who}</p>
             </li>
           ))}
         </ul>

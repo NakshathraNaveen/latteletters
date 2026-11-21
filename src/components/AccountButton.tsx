@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { UserAvatar } from "./CupAvatar";
 
 const pill =
-  "inline-flex items-center gap-1.5 rounded-full border-2 border-cola bg-lemon px-3 py-1 font-label text-[11px] uppercase tracking-wider shadow-[2px_2px_0_var(--color-cola)] transition hover:bg-hotpink";
+  "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-cola bg-lemon px-3 py-1 font-label text-[11px] uppercase tracking-wider shadow-[2px_2px_0_var(--color-cola)] transition hover:bg-hotpink";
 
 /** Header login state. Reads the session, so it must render inside <Suspense>. */
 export async function AccountButton() {

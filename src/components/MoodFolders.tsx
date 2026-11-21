@@ -9,7 +9,7 @@
  * file themselves into the stack (scrubbed — see ScrollFx "file-in").
  */
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { DrinkCup } from "./DrinkCup";
 import type { DrinkId } from "@/lib/drinks";
 
@@ -25,14 +25,15 @@ export type MoodFolder = {
   drinkName: string;
 };
 
-const TAB_LEFT = ["3%", "36%", "66%"];
+/** tab positions: left, centre, right (right-anchored so it never spills off a phone screen) */
+const TAB_POS: CSSProperties[] = [{ left: "3%" }, { left: "50%", transform: "translateX(-50%)" }, { right: "3%" }];
 
 export function MoodFolders({ folders }: { folders: MoodFolder[] }) {
   // start with the last folder open (it's naturally fully visible on top)
   const [open, setOpen] = useState(folders.length - 1);
 
   return (
-    <div data-scrub="file-in" className="relative pt-12 [--fh:25rem] [--peek:3.4rem] md:[--fh:19rem]">
+    <div data-scrub="file-in" className="relative pt-12 [--fh:20rem] [--peek:3.4rem] md:[--fh:19rem]">
       {folders.map((f, i) => {
         const isOpen = open === i;
         const prevOpen = open === i - 1;
@@ -52,8 +53,8 @@ export function MoodFolders({ folders }: { folders: MoodFolder[] }) {
               onClick={() => setOpen(i)}
               aria-expanded={isOpen}
               aria-controls={`folder-${f.vibe}`}
-              className={`paper absolute bottom-full z-10 -mb-px flex h-11 min-w-[9.5rem] items-center gap-2 rounded-t-2xl border-2 border-b-0 border-cola/70 px-5 font-label text-xs font-medium uppercase tracking-[0.18em] transition-transform hover:-translate-y-1 ${f.folder} ${f.ink}`}
-              style={{ left: TAB_LEFT[i % TAB_LEFT.length] }}
+              className={`paper absolute bottom-full z-10 -mb-px flex h-11 min-w-[7rem] items-center justify-center gap-2 rounded-t-2xl border-2 border-b-0 border-cola/70 px-3 font-label text-[11px] font-medium uppercase tracking-[0.14em] transition-transform hover:-translate-y-1 sm:min-w-[9.5rem] sm:px-5 sm:text-xs sm:tracking-[0.18em] ${f.folder} ${f.ink}`}
+              style={TAB_POS[i % TAB_POS.length]}
             >
               {f.title}
             </button>
@@ -66,7 +67,7 @@ export function MoodFolders({ folders }: { folders: MoodFolder[] }) {
             >
               {/* inner content sits below the peek strip */}
               <div
-                className={`grid h-full grid-cols-1 gap-5 p-5 pt-[calc(var(--peek)+0.25rem)] md:grid-cols-[1.1fr_0.9fr_1fr] md:items-center md:gap-8 md:px-10 ${
+                className={`grid h-full grid-cols-[minmax(0,1fr)_6.5rem] content-start gap-5 p-5 pt-[calc(var(--peek)+0.25rem)] md:content-normal md:grid-cols-[1.1fr_0.9fr_1fr] md:items-center md:gap-8 md:px-10 ${
                   isOpen ? "" : "pointer-events-none"
                 }`}
                 inert={!isOpen}
@@ -82,19 +83,19 @@ export function MoodFolders({ folders }: { folders: MoodFolder[] }) {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <p className="font-note text-2xl leading-snug md:text-3xl">{f.note}</p>
+                  <p className="font-note text-xl leading-snug md:text-3xl">{f.note}</p>
                 </div>
 
                 {/* polaroid */}
-                <figure className="mx-auto hidden w-40 rotate-[4deg] bg-lemon p-2.5 pb-1.5 shadow-[var(--shadow-paper)] md:block">
+                <figure className="mx-auto w-[6.5rem] rotate-[4deg] bg-lemon p-1.5 pb-1 shadow-[var(--shadow-paper)] md:w-40 md:p-2.5 md:pb-1.5">
                   <div className="grid aspect-square place-items-center bg-cotton-deep">
                     <DrinkCup drink={f.drink} className="h-4/5 w-auto" />
                   </div>
-                  <figcaption className="pt-1 text-center font-hand text-lg text-cola">{f.drinkName}</figcaption>
+                  <figcaption className="pt-1 text-center font-hand text-sm leading-tight text-cola md:text-lg">{f.drinkName}</figcaption>
                 </figure>
 
                 {/* contents + CTA */}
-                <div>
+                <div className="col-span-2 md:col-span-1">
                   <p className="font-label text-[11px] uppercase tracking-[0.2em] opacity-80">what we look for</p>
                   <p className="mt-1 text-sm">✦ {f.lookFor}</p>
                   <Link
