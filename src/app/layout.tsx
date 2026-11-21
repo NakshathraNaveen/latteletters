@@ -17,6 +17,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en-CA"
+      // lets Next.js turn off smooth scrolling while it jumps to the top on page changes
+      data-scroll-behavior="smooth"
       className={`${fontVariables} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col overflow-x-clip">
