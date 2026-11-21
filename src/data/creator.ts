@@ -1,3 +1,5 @@
+import { blobImage } from "./images";
+
 /**
  * Everything on the "meet the creator" page lives here, so it's easy to edit.
  *
@@ -10,16 +12,16 @@ export const CREATOR = {
   nickname: "naksh",
   /** e.g. "@naksh.codes" — null hides it */
   handle: null as string | null,
-  /** main polaroid photo (in /public); `focus` = where your face is, as "x% y%" */
-  photo: "/creatorimage1.png" as string | null,
+  /** main polaroid photo (in Vercel Blob, see images.ts); `focus` = where your face is, as "x% y%" */
+  photo: blobImage("creatorimage1.png") as string | null,
   photoFocus: "45% 52%",
   /** how far to zoom in on photoFocus (1 = no zoom) */
   photoZoom: 1.25,
-  /** photobooth-strip photos (in /public); `focus` keeps your face in frame */
+  /** photobooth-strip photos (in Vercel Blob); `focus` keeps your face in frame */
   photobooth: [
-    { src: "/photostrip1.png", focus: "38% 40%" },
-    { src: "/photostrip2.jpg", focus: "40% 34%" },
-    { src: "/photostrip3.png", focus: "32% 50%" },
+    { src: blobImage("photostrip1.png"), focus: "38% 40%" },
+    { src: blobImage("photostrip2.jpg"), focus: "40% 34%" },
+    { src: blobImage("photostrip3.png"), focus: "32% 50%" },
   ] as { src: string; focus: string }[],
   /** speech-bubble tags around the envelope */
   tags: ["designer & developer", "iced latte loyalist", "scrapbook enthusiast"],
