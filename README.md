@@ -4,7 +4,9 @@
 
 Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me**. latteletters finds real cafes nearby and explains *why* each one matched.
 
-<!-- TODO: add screenshots / demo GIF + live link -->
+**🔗 Live site: [latteletters.vercel.app](https://latteletters.vercel.app)**
+
+<!-- TODO: add screenshots / demo GIF -->
 
 ## Features
 
