@@ -194,7 +194,7 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
               >
                 edit on OpenStreetMap ↗
               </a>
-              <a href="mailto:latteletter.contact@gmail.com?subject=latteletters%20listing%20update" className="underline underline-offset-4">
+              <a href="mailto:latteletters.contact@gmail.com?subject=latteletters%20listing%20update" className="underline underline-offset-4">
                 or email us
               </a>
             </div>

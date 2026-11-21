@@ -52,7 +52,7 @@ export function SiteFooter() {
           <p>
             Own a cafe or spotted a mistake?{" "}
             <a
-              href="mailto:latteletter.contact@gmail.com?subject=latteletters%20listing%20update"
+              href="mailto:latteletters.contact@gmail.com?subject=latteletters%20listing%20update"
               className="font-semibold underline underline-offset-4"
             >
               Claim or correct a listing

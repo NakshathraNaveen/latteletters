@@ -19,8 +19,8 @@ export default function PrivacyPage() {
       <p className="mt-6">
         latteletters is a small personal project made in Canada. We collect as little as we can, and we follow the principles of
         Canada&rsquo;s privacy law (PIPEDA). Questions? Email{" "}
-        <a href="mailto:latteletter.contact@gmail.com" className="font-semibold underline underline-offset-4">
-          latteletter.contact@gmail.com
+        <a href="mailto:latteletters.contact@gmail.com" className="font-semibold underline underline-offset-4">
+          latteletters.contact@gmail.com
         </a>
         .
       </p>
