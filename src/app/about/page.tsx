@@ -16,7 +16,7 @@ function Bubble({ children, className = "", tail = "left" }: { children: React.R
   return (
     <span
       data-par-y
-      className={`absolute z-30 whitespace-nowrap rounded-xl bg-ink px-4 py-2 font-sans text-sm font-semibold tracking-wide text-lemon shadow-md md:text-base ${className}`}
+      className={`absolute z-30 whitespace-nowrap rounded-xl bg-ink px-3 py-1.5 font-sans text-xs font-semibold tracking-wide text-lemon shadow-md sm:px-4 sm:py-2 sm:text-sm md:text-base ${className}`}
     >
       {children}
       <span
@@ -162,7 +162,8 @@ export default function AboutPage() {
             </svg>
 
             {/* speech bubbles */}
-            <Bubble className="left-[0%] top-[34%]">{CREATOR.tags[0]}</Bubble>
+            {/* on phones the first bubble sits below the face instead of across it */}
+            <Bubble className="left-[0%] top-[50%] sm:top-[34%]">{CREATOR.tags[0]}</Bubble>
             <Bubble className="right-[0%] top-[62%]" tail="right">
               {CREATOR.tags[1]}
             </Bubble>
