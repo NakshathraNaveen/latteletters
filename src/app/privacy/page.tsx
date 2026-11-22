@@ -41,6 +41,11 @@ export default function PrivacyPage() {
           <strong>Your saved cafes</strong>. These are private: only you can see your list, and it&rsquo;s deleted with your account.
         </li>
         <li>
+          <strong>Your cafe crews</strong>. A crew&rsquo;s name, members, cafe list and notes are only visible to people in that crew.
+          Inviting someone by username shows them your username and the crew&rsquo;s name. Leaving a crew or deleting your account
+          removes you from it.
+        </li>
+        <li>
           <strong>A login cookie</strong> that keeps you signed in. We don&rsquo;t use advertising or tracking cookies.
         </li>
         <li>

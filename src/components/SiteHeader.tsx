@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { AccountButton } from "./AccountButton";
 import { SearchBar } from "./SearchBar";
 import { Sparkle } from "./decor";
+import { getCurrentUser } from "@/lib/auth";
+import { pendingInviteCount } from "@/lib/crews";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
@@ -56,7 +58,16 @@ export function SiteHeader() {
             </li>
             <li>
               <Link href="/about" className="underline-offset-4 hover:underline">
-                meet the creator
+                <span className="sm:hidden">creator</span>
+                <span className="hidden sm:inline">meet the creator</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/crews" className="relative underline-offset-4 hover:underline">
+                crews
+                <Suspense fallback={null}>
+                  <CrewInviteBadge />
+                </Suspense>
               </Link>
             </li>
           </ul>
@@ -82,5 +93,22 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
+  );
+}
+
+/** "✉ 2" on the crews link when someone has invited you. */
+async function CrewInviteBadge() {
+  const user = await getCurrentUser().catch(() => null);
+  if (!user?.profile) return null;
+  const n = await pendingInviteCount(user.id).catch(() => 0);
+  if (!n) return null;
+  return (
+    <span className="absolute -right-3 -top-2.5 rounded-full border border-cola bg-hotpink px-1 text-[9px] leading-tight tracking-normal">
+      <span aria-hidden>✉{n}</span>
+      <span className="sr-only">
+        {" "}
+        ({n} crew {n === 1 ? "invite" : "invites"} waiting)
+      </span>
+    </span>
   );
 }

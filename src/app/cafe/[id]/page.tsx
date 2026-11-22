@@ -9,6 +9,8 @@ import { NotesWall } from "@/components/NotesWall";
 import { SocialLinks } from "@/components/SocialLinks";
 import { BinderClip, LaceDivider, MetalStar } from "@/components/decor";
 import { SaveButton } from "@/components/SaveButton";
+import { AddToCrew } from "@/components/crews/AddToCrew";
+import { crewsWithCafe, myCrews } from "@/lib/crews";
 import { getCurrentUser } from "@/lib/auth";
 import { savedIdsSafe } from "@/lib/saved";
 import { cafeById, cafesNear, distanceKm, roundCoord } from "@/lib/osm";
@@ -289,7 +291,25 @@ async function viewerSaved(ids: string[]) {
   return savedIdsSafe(viewer?.profile ? viewer.id : undefined, ids);
 }
 
+/** ♡ save + ＋ add to a crew, under the cafe's name. */
 async function SaveCafe({ cafe }: { cafe: Cafe }) {
-  const saved = await viewerSaved([cafe.id]);
-  return <SaveButton cafeId={cafe.id} cafeName={cafe.name} saved={saved ? saved.has(cafe.id) : null} variant="pill" className="relative mt-4 inline-block" />;
+  const viewer = await getCurrentUser().catch(() => null);
+  const me = viewer?.profile ? viewer.id : undefined;
+  const [saved, crews] = await Promise.all([
+    savedIdsSafe(me, [cafe.id]),
+    me
+      ? myCrews(me)
+          .then(async (list) => {
+            const has = await crewsWithCafe(list.map((c) => c.id), cafe.id);
+            return list.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji, has: has.has(c.id) }));
+          })
+          .catch(() => [])
+      : null,
+  ]);
+  return (
+    <div className="mt-4 flex flex-wrap items-start gap-3">
+      <SaveButton cafeId={cafe.id} cafeName={cafe.name} saved={saved ? saved.has(cafe.id) : null} variant="pill" className="relative inline-block" />
+      <AddToCrew cafeId={cafe.id} cafeName={cafe.name} crews={crews} />
+    </div>
+  );
 }
