@@ -7,9 +7,9 @@ import type { VibeId } from "@/lib/vibes";
  */
 export const MOOD_PLAYLISTS: Record<VibeId, string> = {
   cozy: "https://open.spotify.com/playlist/61v9zLajqRgazElZUWb2B4",
-  study: "",
-  date: "",
-  aesthetic: "",
+  study: "https://open.spotify.com/playlist/37i9dQZF1EIfjzgnbx4yqL",
+  date: "https://open.spotify.com/playlist/37i9dQZF1EIhMt9xBlLWCX",
+  aesthetic: "https://open.spotify.com/playlist/3tVn8zUOCMV5hfT8NRyHoJ",
   quiet: "",
   "late-night": "",
   patio: "",
