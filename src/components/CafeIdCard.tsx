@@ -5,6 +5,7 @@
 import Link from "next/link";
 import type { Cafe } from "@/lib/types";
 import type { DrinkId } from "@/lib/drinks";
+import type { CafeStats } from "@/lib/posts";
 import { VIBES } from "@/lib/vibes";
 import { DrinkCup } from "./DrinkCup";
 import { BinderClip } from "./decor";
@@ -56,7 +57,31 @@ export function Barcode({ seed, className = "" }: { seed: string; className?: st
   );
 }
 
-export function CafeIdCard({ cafe, reasons, index = 0 }: { cafe: Cafe; reasons?: string[]; index?: number }) {
+/** "★ 4.5 (3) · ✎ 2" sticker; renders nothing until someone has posted. */
+export function StatsSticker({ stats, className = "" }: { stats?: CafeStats; className?: string }) {
+  if (!stats || (!stats.reviews && !stats.notes)) return null;
+  const label = [
+    stats.reviews ? `${stats.avg.toFixed(1)} out of 5 stars from ${stats.reviews} review${stats.reviews > 1 ? "s" : ""}` : "",
+    stats.notes ? `${stats.notes} love note${stats.notes > 1 ? "s" : ""}` : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
+  return (
+    <p
+      aria-label={label}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-cola bg-lemon px-2 py-0.5 text-[10px] font-semibold shadow-[1px_1px_0_var(--color-cola)] sm:text-xs ${className}`}
+    >
+      {stats.reviews > 0 && (
+        <span aria-hidden>
+          <span className="text-hotpink [text-shadow:1px_1px_0_var(--color-cola)]">★</span> {stats.avg.toFixed(1)} <span className="font-normal text-cola/70">({stats.reviews})</span>
+        </span>
+      )}
+      {stats.notes > 0 && <span aria-hidden>✎ {stats.notes}</span>}
+    </p>
+  );
+}
+
+export function CafeIdCard({ cafe, reasons, index = 0, stats }: { cafe: Cafe; reasons?: string[]; index?: number; stats?: CafeStats }) {
   const tilt = [-1.5, 1.2, -0.8, 1.8, -1.2, 0.8][index % 6];
   const distance = formatDistance(cafe.distanceKm);
   const place = placeLine(cafe);
@@ -110,6 +135,7 @@ export function CafeIdCard({ cafe, reasons, index = 0 }: { cafe: Cafe; reasons?:
                   <dd>{cafe.brand ? `${cafe.brand} (chain)` : "independent ✦"}</dd>
                 </div>
               </dl>
+              <StatsSticker stats={stats} className="mt-1.5" />
             </div>
           </div>
 

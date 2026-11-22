@@ -167,3 +167,51 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ── search map (Leaflet) ── */
+.map-pin {
+  background: none;
+  border: none;
+}
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--color-cotton-deep);
+}
+.leaflet-container .leaflet-popup-content-wrapper {
+  background: var(--color-lemon);
+  color: var(--color-cola);
+  border: 2px solid var(--color-cola);
+  border-radius: 1rem;
+  box-shadow: 3px 3px 0 var(--color-cola);
+}
+.leaflet-container .leaflet-popup-tip {
+  background: var(--color-lemon);
+  border: 2px solid var(--color-cola);
+}
+.leaflet-container .leaflet-popup-content {
+  margin: 0.75rem 1rem;
+}
+.map-card__name {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1;
+  margin: 0 0 0.35rem !important;
+}
+.map-card__meta {
+  font-size: 0.8rem;
+  margin: 0 0 0.5rem !important;
+}
+.map-card__stars {
+  color: var(--color-hotpink);
+  font-weight: 700;
+  text-shadow: 1px 1px 0 var(--color-cola);
+}
+.map-card__muted {
+  opacity: 0.7;
+}
+.leaflet-container a.map-card__link {
+  color: var(--color-cola);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -98,3 +98,34 @@ export async function recentPosts(limit = 4): Promise<Post[]> {
   if (error) throw new Error(error.message);
   return (data as unknown as Row[]).map(toPost);
 }
+
+export type CafeStats = { avg: number; reviews: number; notes: number };
+
+/** Star average + post counts for a set of cafes (search cards, "also nearby").
+ *  Tagged with every cafe's posts tag, so a new review refreshes it at once. */
+export async function cafeStats(ids: string[]): Promise<Record<string, CafeStats>> {
+  "use cache";
+  const sorted = [...new Set(ids)].sort();
+  if (!sorted.length) return {};
+  cacheTag(...sorted.map(postsTag));
+  const { data, error } = await supabasePublic().from("posts").select("cafe_id, kind, rating").in("cafe_id", sorted).limit(5000);
+  if (error) throw new Error(error.message);
+  const out: Record<string, CafeStats & { sum: number }> = {};
+  for (const r of data as { cafe_id: string; kind: PostKind; rating: number | null }[]) {
+    const s = (out[r.cafe_id] ??= { avg: 0, reviews: 0, notes: 0, sum: 0 });
+    if (r.kind === "review" && r.rating) {
+      s.reviews++;
+      s.sum += r.rating;
+    } else if (r.kind === "note") s.notes++;
+  }
+  return Object.fromEntries(Object.entries(out).map(([id, { sum, ...s }]) => [id, { ...s, avg: s.reviews ? sum / s.reviews : 0 }]));
+}
+
+/** Same as cafeStats, but never breaks a page if the database is unreachable. */
+export async function cafeStatsSafe(ids: string[]): Promise<Record<string, CafeStats>> {
+  try {
+    return await cafeStats([...new Set(ids)].sort());
+  } catch {
+    return {};
+  }
+}

@@ -1,17 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
-import { CafeIdCard } from "@/components/CafeIdCard";
+import { CafeIdCard, formatDistance } from "@/components/CafeIdCard";
+import CafeMap, { type MapPin } from "@/components/CafeMap";
 import { DrinkCup } from "@/components/DrinkCup";
 import { DripLoader } from "@/components/DripLoader";
 import { FolderTabs } from "@/components/FolderTabs";
+import { ResultControls } from "@/components/ResultControls";
 import { SearchBar } from "@/components/SearchBar";
 import { Sparkle } from "@/components/decor";
 import { DRINKS, type DrinkId } from "@/lib/drinks";
+import { openState, type OpenState } from "@/lib/hours";
 import { cafesNear, distanceKm, geocode, roundCoord } from "@/lib/osm";
 import { DEFAULT_RADIUS, POPULAR_PLACES, RADII } from "@/lib/places";
-import { interpret, rankCafes, suggest } from "@/lib/search";
-import type { Place } from "@/lib/types";
+import { cafeStatsSafe, type CafeStats } from "@/lib/posts";
+import { interpret, rankCafes, suggest, type ScoredCafe } from "@/lib/search";
+import type { Cafe, Place } from "@/lib/types";
 import { VIBES } from "@/lib/vibes";
 
 export const metadata: Metadata = {
@@ -32,7 +37,44 @@ export default function SearchPage(props: PageProps<"/search">) {
   );
 }
 
-type Params = { q: string; where: string; lat: string; lng: string; r: string };
+type Params = { q: string; where: string; lat: string; lng: string; r: string; sort: string; f: string; view: string };
+
+const SORTS = [
+  { key: "match", label: "best match" },
+  { key: "near", label: "closest" },
+  { key: "rated", label: "top rated" },
+] as const;
+type SortKey = (typeof SORTS)[number]["key"];
+
+type FilterCtx = { open: Map<string, OpenState> };
+const FILTERS = [
+  { key: "open", label: "open now", test: (c: Cafe, x: FilterCtx) => x.open.get(c.id) === "open" },
+  { key: "vegan", label: "vegan options", test: (c: Cafe) => c.vegan },
+  { key: "wifi", label: "wifi", test: (c: Cafe) => c.wifi },
+  { key: "outdoor", label: "outdoor seating", test: (c: Cafe) => c.outdoorSeating },
+  { key: "indie", label: "independent", test: (c: Cafe) => !c.brand },
+] as const;
+type FilterKey = (typeof FILTERS)[number]["key"];
+
+const ACCENT_HEX: Record<Cafe["accent"], string> = {
+  hotpink: "#f08cb8",
+  lavender: "#b9a9e8",
+  olive: "#c5d28a",
+  lime: "#d4f31e",
+  lemon: "#fffde9",
+};
+
+/** Re-order results. "top rated" lifts reviewed cafes; everyone else keeps best-match order. */
+function sortResults(results: ScoredCafe[], sort: SortKey, stats: Record<string, CafeStats>) {
+  if (sort === "near") return [...results].sort((a, b) => (a.cafe.distanceKm ?? 0) - (b.cafe.distanceKm ?? 0));
+  if (sort === "rated")
+    return [...results].sort((a, b) => {
+      const sa = stats[a.cafe.id];
+      const sb = stats[b.cafe.id];
+      return (sb?.reviews ? sb.avg : -1) - (sa?.reviews ? sa.avg : -1) || (sb?.reviews ?? 0) - (sa?.reviews ?? 0);
+    });
+  return results;
+}
 
 function buildHref(p: Partial<Params>) {
   const s = new URLSearchParams(Object.entries(p).filter(([, v]) => v) as [string, string][]);
@@ -83,10 +125,72 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
     return <ErrorState q={q} where={where} />;
   }
   const withDistance = cafes.map((c) => ({ ...c, distanceKm: distanceKm(place.lat, place.lng, c.lat, c.lng) }));
-  const { results, relaxed } = rankCafes(withDistance, it, nameWords);
-  const shown = results.slice(0, MAX_RESULTS);
+  const { results: ranked, relaxed } = rankCafes(withDistance, it, nameWords);
 
-  const base: Partial<Params> = { q, where, lat: where ? "" : coords?.lat, lng: where ? "" : coords?.lng };
+  // ── sort / filter / view (all in the URL) ──
+  const sort: SortKey = SORTS.find((s) => s.key === first(sp.sort))?.key ?? "match";
+  const view = first(sp.view) === "map" ? "map" : "list";
+  const active = new Set(
+    first(sp.f)
+      .split(",")
+      .filter((k): k is FilterKey => FILTERS.some((f) => f.key === k)),
+  );
+  await connection(); // "open now" depends on the current time, so compute it per request
+  const ctx: FilterCtx = { open: new Map(ranked.map((r) => [r.cafe.id, openState(r.cafe)])) };
+  const passes = (c: Cafe, keys: Set<FilterKey>) => FILTERS.every((f) => !keys.has(f.key) || f.test(c, ctx));
+  const stats = await cafeStatsSafe(ranked.map((r) => r.cafe.id));
+
+  const results = sortResults(
+    ranked.filter((r) => passes(r.cafe, active)),
+    sort,
+    stats,
+  );
+  const shown = results.slice(0, MAX_RESULTS);
+  const hiddenNoHours = active.has("open") ? ranked.filter((r) => passes(r.cafe, new Set([...active].filter((k) => k !== "open"))) && ctx.open.get(r.cafe.id) === "unknown").length : 0;
+
+  const fParam = (keys: Set<FilterKey>) => FILTERS.map((f) => f.key).filter((k) => keys.has(k)).join(",");
+  const base: Partial<Params> = {
+    q,
+    where,
+    lat: where ? "" : coords?.lat,
+    lng: where ? "" : coords?.lng,
+    sort: sort === "match" ? "" : sort,
+    f: fParam(active),
+    view: view === "map" ? "map" : "",
+  };
+  const toggled = (k: FilterKey) => {
+    const next = new Set(active);
+    if (next.has(k)) next.delete(k);
+    else next.add(k);
+    return next;
+  };
+  const controls = {
+    sort: SORTS.map((s) => ({ key: s.key, label: s.label, active: s.key === sort, href: buildHref({ ...base, r, sort: s.key === "match" ? "" : s.key }) })),
+    view: [
+      { key: "list", label: "▦ list", active: view === "list", href: buildHref({ ...base, r, view: "" }) },
+      { key: "map", label: "⌖ map", active: view === "map", href: buildHref({ ...base, r, view: "map" }) },
+    ],
+    filters: FILTERS.map((f) => {
+      const next = toggled(f.key);
+      return {
+        key: f.key,
+        label: f.label,
+        active: active.has(f.key),
+        count: ranked.filter((r) => passes(r.cafe, active.has(f.key) ? active : next)).length,
+        href: buildHref({ ...base, r, f: fParam(next) }),
+      };
+    }),
+  };
+  const pins: MapPin[] = shown.map(({ cafe }) => ({
+    id: cafe.id,
+    name: cafe.name,
+    lat: cafe.lat,
+    lng: cafe.lng,
+    distance: formatDistance(cafe.distanceKm),
+    avg: stats[cafe.id]?.reviews ? stats[cafe.id].avg : null,
+    reviews: stats[cafe.id]?.reviews ?? 0,
+    colour: ACCENT_HEX[cafe.accent],
+  }));
   const understood = [...it.drinks.map((d) => DRINKS[d.id].name.toLowerCase()), ...it.vibes.map((v) => VIBES[v].label)];
   const fuzzy = it.drinks.filter((d) => d.kind !== "exact");
 
@@ -132,19 +236,37 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
               couldn&apos;t spot {it.vibes.map((v) => VIBES[v].label).join(" + ")} clues in the map data here, so here&apos;s everything close by ✦
             </p>
           )}
+          {ranked.length > 0 && <ResultControls {...controls} />}
+          {hiddenNoHours > 0 && (
+            <p className="mb-6 font-hand text-lg">
+              ✦ {hiddenNoHours} {hiddenNoHours === 1 ? "cafe doesn't" : "cafes don't"} list opening hours on the map, so we hid {hiddenNoHours === 1 ? "it" : "them"}.
+            </p>
+          )}
           {shown.length > 0 ? (
             <>
-              <div data-fx="rise" className="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-3">
-                {shown.map((res, i) => (
-                  <CafeIdCard key={res.cafe.id} cafe={res.cafe} reasons={q ? res.reasons : undefined} index={i} />
-                ))}
-              </div>
+              {view === "map" ? (
+                <CafeMap pins={pins} centre={{ lat: place.lat, lng: place.lng, label: place.label }} />
+              ) : (
+                <div data-fx="rise" className="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-3">
+                  {shown.map((res, i) => (
+                    <CafeIdCard key={res.cafe.id} cafe={res.cafe} reasons={q ? res.reasons : undefined} index={i} stats={stats[res.cafe.id]} />
+                  ))}
+                </div>
+              )}
               {results.length > shown.length && (
                 <p className="mt-8 text-center font-hand text-xl">
-                  showing the top {shown.length} of {results.length}. Add a drink or vibe to narrow it down.
+                  showing the top {shown.length} of {results.length}. Add a drink, vibe or filter to narrow it down.
                 </p>
               )}
             </>
+          ) : active.size > 0 && ranked.length > 0 ? (
+            <div className="flex flex-col items-center py-10 text-center">
+              <DrinkCup drink="americano" className="h-32 w-auto -rotate-12 opacity-80" />
+              <h2 className="mt-4 font-display text-3xl">no cafes match all those filters</h2>
+              <Link href={buildHref({ ...base, r, f: "" })} className="mt-4 font-hand text-2xl underline underline-offset-4">
+                clear filters →
+              </Link>
+            </div>
           ) : (
             <EmptyState q={q} base={{ ...base, r }} suggestions={suggest(q)} widerHref={r !== "8" ? buildHref({ ...base, r: "8" }) : undefined} />
           )}

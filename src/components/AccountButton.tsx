@@ -18,7 +18,7 @@ export async function AccountButton() {
   return (
     <Link href="/settings" className={pill} aria-label={`Your account, @${user.profile.username}`}>
       <UserAvatar avatar={user.profile.avatar} className="h-5 w-auto" />
-      <span className="max-w-24 truncate normal-case tracking-normal">@{user.profile.username}</span>
+      <span className="hidden max-w-24 truncate normal-case tracking-normal sm:inline">@{user.profile.username}</span>
     </Link>
   );
 }

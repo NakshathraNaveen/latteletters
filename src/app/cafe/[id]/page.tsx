@@ -9,6 +9,7 @@ import { NotesWall } from "@/components/NotesWall";
 import { SocialLinks } from "@/components/SocialLinks";
 import { BinderClip, LaceDivider, MetalStar } from "@/components/decor";
 import { cafeById, cafesNear, distanceKm, roundCoord } from "@/lib/osm";
+import { cafeStatsSafe } from "@/lib/posts";
 import type { Cafe } from "@/lib/types";
 import { VIBES, VIBE_RULES } from "@/lib/vibes";
 
@@ -265,10 +266,11 @@ async function Nearby({ cafe }: { cafe: Cafe }) {
     .sort((a, b) => Number(!!a.brand) - Number(!!b.brand) || a.distanceKm - b.distanceKm)
     .slice(0, 3);
   if (!picks.length) return <p className="mt-6 font-hand text-2xl">no other mapped cafes within a kilometre!</p>;
+  const stats = await cafeStatsSafe(picks.map((c) => c.id));
   return (
     <div data-fx="rise" className="mt-8 grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-3">
       {picks.map((c, i) => (
-        <CafeIdCard key={c.id} cafe={c} index={i} />
+        <CafeIdCard key={c.id} cafe={c} index={i} stats={stats[c.id]} />
       ))}
     </div>
   );

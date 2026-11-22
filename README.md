@@ -15,6 +15,8 @@ Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me
 - **Mood and vibe search**: phrases like `late night` or `cozy study` map to vibe tags inferred from real map data (wifi, outdoor seating, opening hours, independent vs chain, Instagram, cuisine).
 - **"Why this matched"** on every result ("has wifi", "open late", "tea spot"), plus a friendly empty state.
 - **Folder-tab distance picker**: walkable (1 km), short ride (3 km), worth the trip (8 km).
+- **Sort, filter and map**: sort by best match, closest or top rated. Filter to open now (OSM opening hours parsed in each cafe's own time zone), vegan options, wifi, outdoor seating or independent, with live counts on each chip. Flip to a Leaflet map with cup-shaped pins. All of it lives in the URL, so results are shareable and work without JS.
+- **Ratings on cards**: cafe cards show their average stars and love-note count, cached per cafe and refreshed the moment someone posts.
 - **Cafe pages**: ID card with address and opening hours, amenities, social links with click tracking, an OpenStreetMap embed, directions, and an "edit on OpenStreetMap" link for corrections.
 - **Accounts (passwordless)**: log in with an emailed one-time link, then pick a username and design a cup avatar (cup style incl. kulhad and cutting chai glass, drink, colour and pattern). Public profiles live at `/u/<username>` with a "regular" badge. "Delete my account" removes every post and photo.
 - **Reviews & love notes**: a star rating, the drink you ordered, vibe tags and up to 3 photos, or a short sticky-note "love note". You can edit and delete your own, and they appear instantly thanks to tag-based cache invalidation.
@@ -38,7 +40,7 @@ Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me
 | Data | OpenStreetMap via the Nominatim API, cached with `use cache` |
 | Accounts & reviews | Supabase (Postgres with row level security, Auth magic links, Storage) |
 | Site images | Vercel Blob |
-| Maps | OpenStreetMap embed (free, no API key) |
+| Maps | Leaflet + OpenStreetMap tiles for the results map, OSM embed on cafe pages (free, no API key) |
 | Hosting | Vercel |
 
 ## How search works
@@ -97,7 +99,7 @@ Cafe data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyrigh
 
 ## Roadmap
 
-- **Phase 2**: ✓ accounts, reviews and love notes with photos, moderation. Next up: a map view, distance sorting, and filters (open now, vegan).
+- **Phase 2**: ✓ accounts, reviews and love notes with photos, moderation. ✓ map view, sorting, filters (open now, vegan, wifi…), ratings on cards.
 - **Phase 3**: weighted vibe search using review text, saved cafes ("coffee passport"), a cafe-owner claim flow.
 
 ---
