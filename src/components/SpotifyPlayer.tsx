@@ -45,7 +45,7 @@ export function SpotifyPlayer({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-full border-2 border-cola bg-cotton px-3 py-1 text-sm font-semibold shadow-[2px_2px_0_var(--color-cola)] transition hover:-translate-y-0.5 hover:bg-cotton-deep"
+        className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-full border-2 border-cola bg-cotton px-3 py-1 text-sm text-cola font-semibold shadow-[2px_2px_0_var(--color-cola)] transition hover:-translate-y-0.5 hover:bg-cotton-deep"
       >
         <span aria-hidden className="grid size-5 shrink-0 place-items-center rounded-full bg-cola text-[10px] text-cotton">
           ▶
@@ -55,7 +55,7 @@ export function SpotifyPlayer({
         </span>
         <span className="sr-only"> (loads the Spotify player)</span>
       </button>
-      <a href={spotifyPage(ref)} target="_blank" rel="noopener noreferrer" className="text-xs text-cola/70 underline underline-offset-2">
+      <a href={spotifyPage(ref)} target="_blank" rel="noopener noreferrer" className="text-xs underline underline-offset-2 opacity-75">
         open in Spotify<span className="sr-only"> (new tab)</span>
       </a>
     </div>
