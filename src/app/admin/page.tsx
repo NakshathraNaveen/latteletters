@@ -35,7 +35,7 @@ async function Queue() {
   const { data, error } = await supabaseAdmin()
     .from("posts")
     .select(
-      "id, kind, cafe_id, cafe_name, rating, drink, vibes, body, photos, created_at, updated_at, status, report_count, author:profiles!inner(id, username, avatar), reports(reason, created_at)",
+      "id, kind, cafe_id, cafe_name, rating, drink, vibes, body, photos, song, song_title, created_at, updated_at, status, report_count, author:profiles!inner(id, username, avatar), reports(reason, created_at)",
     )
     .gt("report_count", 0)
     .eq("reviewed_by_admin", false)

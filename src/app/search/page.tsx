@@ -12,6 +12,9 @@ import { SearchBar } from "@/components/SearchBar";
 import { Sparkle } from "@/components/decor";
 import { DRINKS, type DrinkId } from "@/lib/drinks";
 import { openState, type OpenState } from "@/lib/hours";
+import { SpotifyPlayer } from "@/components/SpotifyPlayer";
+import { MOOD_PLAYLISTS } from "@/data/playlists";
+import { moodPlaylist } from "@/lib/spotify";
 import { cafesNear, distanceKm, geocode, roundCoord } from "@/lib/osm";
 import { DEFAULT_RADIUS, POPULAR_PLACES, RADII } from "@/lib/places";
 import { cafeStatsSafe, type CafeStats } from "@/lib/posts";
@@ -193,6 +196,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
   }));
   const understood = [...it.drinks.map((d) => DRINKS[d.id].name.toLowerCase()), ...it.vibes.map((v) => VIBES[v].label)];
   const fuzzy = it.drinks.filter((d) => d.kind !== "exact");
+  const moodVibe = it.vibes.find((v) => moodPlaylist(MOOD_PLAYLISTS, v));
 
   return (
     <>
@@ -220,6 +224,14 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
             </span>
           )}
         </p>
+      )}
+      {moodVibe && (
+        <SpotifyPlayer
+          song={moodPlaylist(MOOD_PLAYLISTS, moodVibe)!}
+          title={`the ${VIBES[moodVibe].label} playlist`}
+          prefix="set the mood"
+          className="mt-3 max-w-md"
+        />
       )}
 
       <div className="mt-10">

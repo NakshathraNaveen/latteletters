@@ -11,6 +11,7 @@
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { DrinkCup } from "./DrinkCup";
+import { SpotifyPlayer } from "./SpotifyPlayer";
 import type { DrinkId } from "@/lib/drinks";
 
 export type MoodFolder = {
@@ -23,6 +24,8 @@ export type MoodFolder = {
   /** what the vibe rule looks for in the map data */
   lookFor: string;
   drinkName: string;
+  /** stored Spotify playlist (see data/playlists.ts), or null */
+  playlist: string | null;
 };
 
 /** tab positions: left, centre, right (right-anchored so it never spills off a phone screen) */
@@ -33,7 +36,11 @@ export function MoodFolders({ folders }: { folders: MoodFolder[] }) {
   const [open, setOpen] = useState(folders.length - 1);
 
   return (
-    <div data-scrub="file-in" className="relative pt-12 [--fh:20rem] [--peek:3.4rem] md:[--fh:19rem]">
+    <div
+      data-scrub="file-in"
+      // on phones the playlist player stacks under the button, so folders get a little taller
+      className={`relative pt-12 [--peek:3.4rem] md:[--fh:19rem] ${folders.some((f) => f.playlist) ? "[--fh:26rem]" : "[--fh:20rem]"}`}
+    >
       {folders.map((f, i) => {
         const isOpen = open === i;
         const prevOpen = open === i - 1;
@@ -105,6 +112,7 @@ export function MoodFolders({ folders }: { folders: MoodFolder[] }) {
                   >
                     open the {f.title} folder →
                   </Link>
+                  {f.playlist && isOpen && <SpotifyPlayer song={f.playlist} title={`the ${f.title} playlist`} prefix="press play" compact className="mt-3" />}
                 </div>
               </div>
             </section>

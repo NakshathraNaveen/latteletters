@@ -20,6 +20,7 @@ Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me
 - **Cafe pages**: ID card with address and opening hours, amenities, social links with click tracking, an OpenStreetMap embed, directions, and an "edit on OpenStreetMap" link for corrections.
 - **Accounts (passwordless)**: log in with an emailed one-time link, then pick a username and design a cup avatar (cup style incl. kulhad and cutting chai glass, drink, colour and pattern). Public profiles live at `/u/<username>` with a "regular" badge. "Delete my account" removes every post and photo.
 - **Reviews & love notes**: a star rating, the drink you ordered, vibe tags and up to 3 photos, or a short sticky-note "love note". You can edit and delete your own, and they appear instantly thanks to tag-based cache invalidation.
+- **Music**: add a Spotify song, album or playlist to any review or love note ("what was playing?"). Each mood can have its own playlist (set in `src/data/playlists.ts`), shown in its home-page folder and on mood searches. Links are checked with Spotify's public oEmbed (no API key). The official player only loads when someone presses play, so pages stay fast and Spotify cookies aren't set until then.
 - **Private by default**: photos are resized in the browser before upload, which strips EXIF/GPS metadata. Emails are never shown.
 - **Moderation**:
   - a profanity filter that also catches l33t-speak

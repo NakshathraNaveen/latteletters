@@ -5,6 +5,7 @@ import { createPost, getUploadUrls, updatePost, type FormState } from "@/app/act
 import { DRINKS, DRINK_IDS } from "@/lib/drinks";
 import type { Post, PostKind } from "@/lib/posts";
 import { shrinkPhoto } from "@/lib/resize";
+import { decodeSpotify, spotifyPage } from "@/lib/spotify";
 import { uploadToSignedUrl } from "@/lib/supabase/browser";
 import { photoUrl } from "@/lib/supabase/public";
 import { VIBES, type VibeId } from "@/lib/vibes";
@@ -62,6 +63,7 @@ function Fields({
   const [localError, setLocalError] = useState<string>();
   const [uploading, setUploading] = useState(false);
   const id = useId();
+  const songRef = decodeSpotify(initial?.song);
 
   const photoCount = kept.length + added.length;
 
@@ -262,6 +264,26 @@ function Fields({
           <p className="text-xs text-cola/70">Only post photos you took. We shrink them and remove hidden location data before uploading.</p>
         </div>
       )}
+
+      <div className="space-y-1.5">
+        <label htmlFor={`${id}-song`} className={label}>
+          what was playing? ♫ <span className="normal-case tracking-normal text-cola/60">(optional)</span>
+        </label>
+        <input
+          id={`${id}-song`}
+          name="song"
+          type="url"
+          inputMode="url"
+          maxLength={300}
+          defaultValue={songRef ? spotifyPage(songRef) : ""}
+          placeholder="https://open.spotify.com/track/…"
+          aria-describedby={`${id}-song-hint`}
+          className={input}
+        />
+        <p id={`${id}-song-hint`} className="text-xs text-cola/70">
+          The song stuck in your head, or the one playing in the cafe. In Spotify, tap Share → Copy link and paste it here.
+        </p>
+      </div>
 
       <FormMessage error={localError ?? state.error} ok={!editing && state.ok && (state.kind === "review" ? "Review pinned ✦" : "Love note pinned ✦")} />
 

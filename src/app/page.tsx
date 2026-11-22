@@ -12,12 +12,15 @@ import { PostCard } from "@/components/PostCards";
 import { DRINKS, type DrinkId } from "@/lib/drinks";
 import { recentPosts, type Post } from "@/lib/posts";
 import { POPULAR_PLACES } from "@/lib/places";
+import { moodPlaylist } from "@/lib/spotify";
 import { MOOD_FOLDERS, VIBES } from "@/lib/vibes";
+import { MOOD_PLAYLISTS } from "@/data/playlists";
 
 const MOODS: MoodFolder[] = MOOD_FOLDERS.map((m) => ({
   ...m,
   lookFor: VIBES[m.vibe].lookFor,
   drinkName: DRINKS[m.drink].name.toLowerCase(),
+  playlist: moodPlaylist(MOOD_PLAYLISTS, m.vibe),
 }));
 
 const STAMP_BG = ["bg-cotton", "bg-lavender/60", "bg-lemon", "bg-[#c5d28a]/70", "bg-hotpink/50", "bg-lime/50"];

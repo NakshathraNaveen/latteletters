@@ -7,6 +7,7 @@ import { cafeById } from "@/lib/osm";
 import { DRINKS } from "@/lib/drinks";
 import { isDrinkId, postsTag, RECENT_TAG, userTag, type PostKind } from "@/lib/posts";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { decodeSpotify, encodeSpotify, parseSpotifyLink, spotifyTitle } from "@/lib/spotify";
 import { PHOTO_BUCKET } from "@/lib/supabase/public";
 import { VIBES } from "@/lib/vibes";
 
@@ -18,6 +19,8 @@ const PHOTO_PATH = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(webp|jpg)$/;
 const SWEET = "Let's keep it sweet! Please reword that without the strong language.";
 const SPILLED = "Something spilled. Please try again.";
 const BAD_PHOTO = "One of the photos didn't upload properly.";
+const BAD_SONG = "That doesn't look like a Spotify link. In Spotify, tap Share → Copy link, then paste it here.";
+const NO_SONG = "Spotify couldn't find that song. Check the link and try again?";
 
 /** Signed upload slots so the browser can send photos straight to storage. */
 export async function getUploadUrls(types: string[]): Promise<{ path: string; token: string }[] | { error: string }> {
@@ -34,7 +37,7 @@ export async function getUploadUrls(types: string[]): Promise<{ path: string; to
   return slots;
 }
 
-type Parsed = { kind: PostKind; cafeId: string; rating: number | null; drink: string | null; vibes: string[]; body: string; photos: string[] };
+type Parsed = { kind: PostKind; cafeId: string; rating: number | null; drink: string | null; vibes: string[]; body: string; photos: string[]; song: string | null };
 
 /** Validate everything that came from the browser. */
 function parse(form: FormData, userId: string): { error: string } | Parsed {
@@ -49,7 +52,12 @@ function parse(form: FormData, userId: string): { error: string } | Parsed {
   if (body.length > max) return { error: `That's a bit long. Keep it under ${max} characters.` };
   if (isProfane(body)) return { error: SWEET };
 
-  if (kind === "note") return { kind, cafeId, rating: null, drink: null, vibes: [], body, photos: [] };
+  const rawSong = String(form.get("song") ?? "").trim();
+  const songRef = rawSong ? parseSpotifyLink(rawSong) : null;
+  if (rawSong && !songRef) return { error: BAD_SONG };
+  const song = songRef ? encodeSpotify(songRef) : null;
+
+  if (kind === "note") return { kind, cafeId, rating: null, drink: null, vibes: [], body, photos: [], song };
 
   const rating = Number(form.get("rating"));
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) return { error: "Tap the stars to give a rating." };
@@ -66,7 +74,15 @@ function parse(form: FormData, userId: string): { error: string } | Parsed {
   if (photos.length > LIMITS.photos) return { error: "Up to 3 photos per review." };
   if (photos.some((p) => !PHOTO_PATH.test(p) || !p.startsWith(`${userId}/`))) return { error: BAD_PHOTO };
 
-  return { kind, cafeId, rating, drink, vibes, body, photos };
+  return { kind, cafeId, rating, drink, vibes, body, photos, song };
+}
+
+/** Check a song with Spotify (skipped when it hasn't changed). */
+async function songTitleFor(song: string | null, existing?: { song: string | null; song_title: string | null }) {
+  if (!song) return { title: null };
+  if (existing?.song === song && existing.song_title) return { title: existing.song_title };
+  const title = await spotifyTitle(decodeSpotify(song)!);
+  return title ? { title } : { error: NO_SONG };
 }
 
 /** True if every path was really uploaded by this user. */
@@ -89,6 +105,8 @@ export async function createPost(_: FormState, form: FormData): Promise<FormStat
   const limited = await rateLimitReason(user.id, input.cafeId, input.kind);
   if (limited) return { error: limited };
   if (!(await photosExist(user.id, input.photos))) return { error: BAD_PHOTO };
+  const song = await songTitleFor(input.song);
+  if ("error" in song) return { error: song.error };
 
   // the cafe name comes from OpenStreetMap, never from the browser
   const cafe = await cafeById(input.cafeId).catch(() => null);
@@ -104,6 +122,8 @@ export async function createPost(_: FormState, form: FormData): Promise<FormStat
     vibes: input.vibes,
     body: input.body,
     photos: input.photos,
+    song: input.song,
+    song_title: song.title,
   });
   if (error) {
     if (error.code === "23505") return { error: "You've already reviewed this cafe. Edit your review instead!" };
@@ -115,14 +135,23 @@ export async function createPost(_: FormState, form: FormData): Promise<FormStat
   return { ok: true, at: Date.now(), kind: input.kind };
 }
 
-type OwnedPost = { id: string; user_id: string; cafe_id: string; kind: PostKind; photos: string[]; author: { username: string } };
+type OwnedPost = {
+  id: string;
+  user_id: string;
+  cafe_id: string;
+  kind: PostKind;
+  photos: string[];
+  song: string | null;
+  song_title: string | null;
+  author: { username: string };
+};
 
 /** Fetch a post and make sure the caller may change it. */
 async function ownedPost(id: string, userId: string, isAdmin = false): Promise<OwnedPost | null> {
   if (!UUID.test(id)) return null;
   const { data } = await supabaseAdmin()
     .from("posts")
-    .select("id, user_id, cafe_id, kind, photos, author:profiles!inner(username)")
+    .select("id, user_id, cafe_id, kind, photos, song, song_title, author:profiles!inner(username)")
     .eq("id", id)
     .maybeSingle();
   const post = data as unknown as OwnedPost | null;
@@ -141,10 +170,12 @@ export async function updatePost(_: FormState, form: FormData): Promise<FormStat
 
   const added = input.photos.filter((p) => !post.photos.includes(p));
   if (!(await photosExist(user.id, added))) return { error: BAD_PHOTO };
+  const song = await songTitleFor(input.song, post);
+  if ("error" in song) return { error: song.error };
 
   const { error } = await supabaseAdmin()
     .from("posts")
-    .update({ rating: input.rating, drink: input.drink, vibes: input.vibes, body: input.body, photos: input.photos })
+    .update({ rating: input.rating, drink: input.drink, vibes: input.vibes, body: input.body, photos: input.photos, song: input.song, song_title: song.title })
     .eq("id", post.id)
     .eq("user_id", user.id);
   if (error) return { error: SPILLED };

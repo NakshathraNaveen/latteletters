@@ -60,6 +60,11 @@ export default function PrivacyPage() {
         Accounts, posts and photos are stored with Supabase, and the site runs on Vercel. Both use servers in the United States, so
         your information may be processed there. Cafe details come from OpenStreetMap.
       </p>
+      <p className="mt-3">
+        Songs and playlists are played by Spotify&rsquo;s own player. It only loads when you press play, and from then on
+        Spotify&rsquo;s privacy policy and cookies apply. When you add a song to a post, we ask Spotify for its title to check
+        the link works.
+      </p>
 
       <h2 className={h2}>your choices</h2>
       <ul className={list}>

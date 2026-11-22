@@ -15,6 +15,9 @@ export type Post = {
   body: string;
   /** storage paths */
   photos: string[];
+  /** Spotify link in our stored form ("track:<id>"), see lib/spotify */
+  song: string | null;
+  songTitle: string | null;
   createdAt: string;
   edited: boolean;
   author: { id: string; username: string; avatar: string };
@@ -23,7 +26,7 @@ export type Post = {
 export const postsTag = (cafeId: string) => `posts:${cafeId}`;
 export const userTag = (username: string) => `user:${username}`;
 
-const COLUMNS = "id, kind, cafe_id, cafe_name, rating, drink, vibes, body, photos, created_at, updated_at, author:profiles!inner(id, username, avatar)";
+const COLUMNS = "id, kind, cafe_id, cafe_name, rating, drink, vibes, body, photos, song, song_title, created_at, updated_at, author:profiles!inner(id, username, avatar)";
 
 type Row = {
   id: string;
@@ -35,6 +38,8 @@ type Row = {
   vibes: string[];
   body: string;
   photos: string[];
+  song: string | null;
+  song_title: string | null;
   created_at: string;
   updated_at: string;
   author: { id: string; username: string; avatar: string };
@@ -50,6 +55,8 @@ export const toPost = (r: Row): Post => ({
   vibes: r.vibes,
   body: r.body,
   photos: r.photos,
+  song: r.song ?? null,
+  songTitle: r.song_title ?? null,
   createdAt: r.created_at,
   edited: new Date(r.updated_at).getTime() - new Date(r.created_at).getTime() > 60_000,
   author: r.author,

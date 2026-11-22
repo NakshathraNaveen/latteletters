@@ -5,6 +5,7 @@ import { drinkName, type Post } from "@/lib/posts";
 import { photoUrl } from "@/lib/supabase/public";
 import { VIBES, type VibeId } from "@/lib/vibes";
 import { UserAvatar } from "./CupAvatar";
+import { SpotifyPlayer } from "./SpotifyPlayer";
 
 /** Stable little tilt per post so the wall looks hand-pinned. */
 export function tilt(id: string, max = 3) {
@@ -67,6 +68,7 @@ export function ReviewCard({ post, actions, showCafe }: { post: Post; actions?: 
           ))}
         </ul>
       )}
+      {post.song && <SpotifyPlayer song={post.song} title={post.songTitle} className="mt-3" />}
       {post.photos.length > 0 && (
         <ul className="mt-4 flex flex-wrap gap-3">
           {post.photos.map((p, i) => (
@@ -100,6 +102,7 @@ export function StickyNote({ post, actions, showCafe }: { post: Post; actions?: 
     <article className={`paper relative min-h-44 p-5 pt-7 shadow-[var(--shadow-paper)] ${tone}`} style={{ transform: `rotate(${tilt(post.id, 3)}deg)` }}>
       <span className="tape -top-3 left-1/2 -translate-x-1/2 rotate-3" />
       <p className="whitespace-pre-line break-words font-note text-2xl leading-snug">{post.body}</p>
+      {post.song && <SpotifyPlayer song={post.song} title={post.songTitle} prefix="soundtrack" className="mt-3" />}
       <div className="mt-4 flex flex-wrap items-end justify-between gap-2">
         <Byline post={post} showCafe={showCafe} />
         {actions}
