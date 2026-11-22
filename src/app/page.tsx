@@ -186,7 +186,9 @@ export default function Home() {
             </li>
           ))}
         </ul>
-        <p className="mt-6 font-hand text-2xl">…or type any city, town or neighbourhood in the search box ✦</p>
+        <div className="mt-10">
+          <SearchBar variant="place" />
+        </div>
       </section>
 
       {/* ─────────────────────────── MOOD FOLDERS ─────────────────────────── */}

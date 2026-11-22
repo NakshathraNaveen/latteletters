@@ -4,6 +4,7 @@
  *
  *  - hero:    "what" + "where" boxes + near-me button
  *  - compact: one box for the header ("matcha in tokyo" works too)
+ *  - place:   "anywhere else?" city box under the passport stamps
  */
 import { NearMeButton } from "./NearMeButton";
 
@@ -21,13 +22,43 @@ export function SearchBar({
   coords,
   radius,
 }: {
-  variant?: "hero" | "compact";
+  variant?: "hero" | "compact" | "place";
   defaultQuery?: string;
   defaultWhere?: string;
   /** keep searching around the visitor's (rounded) location if no city is typed */
   coords?: { lat: string; lng: string };
   radius?: string;
 }) {
+  if (variant === "place") {
+    return (
+      <form action="/search" method="get" role="search" className="w-full max-w-xl">
+        <label htmlFor="search-place" className="font-hand text-2xl leading-tight">
+          not on the wall? the whole world&rsquo;s on the map, just type it ✦
+        </label>
+        <div className="mt-3 flex items-center gap-2 rounded-full border-[3px] border-dashed border-cola bg-lemon p-1.5 pl-4 shadow-[4px_4px_0_var(--color-cola)]">
+          <span aria-hidden className="shrink-0 text-xl">
+            📍
+          </span>
+          <input
+            id="search-place"
+            name="where"
+            type="search"
+            required
+            autoComplete="off"
+            placeholder="lisbon, nairobi, your hometown…"
+            className="min-w-0 flex-1 bg-transparent py-1.5 text-base text-cola placeholder:text-cola/55 focus:outline-none sm:text-lg"
+          />
+          <button
+            type="submit"
+            className="shrink-0 rounded-full border-2 border-cola bg-hotpink px-4 py-1.5 font-display text-sm text-cola transition hover:bg-cola hover:text-cotton sm:text-base"
+          >
+            stamp it ✈
+          </button>
+        </div>
+      </form>
+    );
+  }
+
   if (variant === "compact") {
     return (
       <form action="/search" method="get" role="search" className="w-full max-w-xs">
