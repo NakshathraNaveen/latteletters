@@ -6,7 +6,7 @@ import type { VibeId } from "@/lib/vibes";
  * Leave a mood empty ("") and its player simply doesn't show.
  */
 export const MOOD_PLAYLISTS: Record<VibeId, string> = {
-  cozy: "",
+  cozy: "https://open.spotify.com/playlist/61v9zLajqRgazElZUWb2B4",
   study: "",
   date: "",
   aesthetic: "",
