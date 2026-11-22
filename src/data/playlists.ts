@@ -12,7 +12,7 @@ export const MOOD_PLAYLISTS: Record<VibeId, string> = {
   aesthetic: "https://open.spotify.com/playlist/3tVn8zUOCMV5hfT8NRyHoJ",
   quiet: "https://open.spotify.com/playlist/37i9dQZF1EIfCRLbaMM5Iv",
   "late-night": "https://open.spotify.com/playlist/37i9dQZF1EIhJvi8S2DMZV",
-  patio: "",
+  patio: "https://open.spotify.com/playlist/37i9dQZF1EIhP42YEbJXkn",
   plants: "",
   vegan: "",
   dessert: "",
