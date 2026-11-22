@@ -45,6 +45,14 @@ export const dailyHandwritten = localFont({
   display: "swap",
 });
 
+/** Friendly, easy-to-read handwriting — the "letter from naksh" on the home page */
+export const internetFriends = localFont({
+  src: "../fonts/internet-friends/internet-friends.ttf",
+  variable: "--font-internetfriends",
+  weight: "100 900",
+  display: "swap",
+});
+
 /** Clean all-caps geometric — labels, tabs, nav */
 export const lemonMilk = localFont({
   src: [
@@ -93,6 +101,6 @@ export const bricolage = Bricolage_Grotesque({
   weight: ["700", "800"],
 });
 
-export const fontVariables = [cheesel, aston, railey, dailyHandwritten, lemonMilk, rollergirls, specialElite, silkscreen, dmSans, bricolage]
+export const fontVariables = [cheesel, aston, railey, dailyHandwritten, internetFriends, lemonMilk, rollergirls, specialElite, silkscreen, dmSans, bricolage]
   .map((f) => f.variable)
   .join(" ");

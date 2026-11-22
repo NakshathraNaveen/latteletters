@@ -59,7 +59,7 @@ export function HowItWorks() {
             >
               <span className="tape -top-3 left-10 -rotate-6" />
               <span className="tape -top-3 right-8 rotate-6" />
-              <div className="font-note text-xl leading-[var(--lh)] md:text-2xl">
+              <div className="font-letter text-lg leading-[var(--lh)] md:text-xl">
                 <p>{LETTER.greeting}</p>
                 {LETTER.paragraphs.map((p) => (
                   <p key={p.slice(0, 24)} className="mt-[var(--lh)]">
