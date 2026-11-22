@@ -161,7 +161,33 @@ export async function cafesNear(lat: number, lng: number, radiusKm: number): Pro
     const page2 = await nominatim<RawPlace[]>("/search", { ...base, exclude_place_ids: page1.map((p) => p.place_id).join(",") });
     all = [...page1, ...page2];
   }
-  return all.map(toCafe).filter((c): c is Cafe => c !== null);
+  return dedupeCafes(all.map(toCafe).filter((c): c is Cafe => c !== null));
+}
+
+/** How much a listing tells us, so the fuller copy of a duplicate wins. */
+const richness = (c: Cafe) =>
+  (c.hours ? 2 : 0) + (c.street ? 1 : 0) + c.socials.length + c.cuisine.length + (c.brand ? 1 : 0);
+
+const sameName = (n: string) => n.toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}]+/gu, "");
+
+/**
+ * Nominatim sometimes returns the same place twice (across pages), and OSM
+ * often has one cafe mapped twice (a pin plus the building, or two pins a few
+ * doors apart). Drop repeats: same id, or same name within ~80 m. Real chain
+ * branches further apart stay.
+ */
+export function dedupeCafes(cafes: Cafe[]): Cafe[] {
+  const kept: Cafe[] = [];
+  const ids = new Set<string>();
+  for (const c of cafes) {
+    if (ids.has(c.id)) continue;
+    ids.add(c.id);
+    const key = sameName(c.name);
+    const i = kept.findIndex((k) => sameName(k.name) === key && distanceKm(k.lat, k.lng, c.lat, c.lng) < 0.08);
+    if (i === -1) kept.push(c);
+    else if (richness(c) > richness(kept[i])) kept[i] = c;
+  }
+  return kept;
 }
 
 /** One cafe by its URL id, e.g. "node-123456". */
