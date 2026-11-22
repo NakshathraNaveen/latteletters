@@ -158,14 +158,17 @@ export default function Home() {
 
       {/* ─────────────────────────── WHERE TO? (passport stamps) ─────────────────────────── */}
       <section aria-labelledby="where" className="mx-auto max-w-6xl px-5 pt-24">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <div>
             <p className="font-serif text-2xl">cafes anywhere in the world</p>
             <h2 id="where" className="font-display text-5xl md:text-6xl">
               where to?
             </h2>
           </div>
-          <NearMeButton />
+          <div className="flex w-full flex-col items-start gap-3 md:w-auto md:max-w-xl md:flex-1">
+            <SearchBar variant="place" />
+            <NearMeButton />
+          </div>
         </div>
 
         <ul data-fx="rise" className="mt-10 grid grid-cols-3 gap-3 sm:gap-6 lg:grid-cols-4">
@@ -186,9 +189,6 @@ export default function Home() {
             </li>
           ))}
         </ul>
-        <div className="mt-10">
-          <SearchBar variant="place" />
-        </div>
       </section>
 
       {/* ─────────────────────────── MOOD FOLDERS ─────────────────────────── */}
