@@ -38,6 +38,9 @@ export default function PrivacyPage() {
           upload, which also removes hidden location (GPS) data from them.
         </li>
         <li>
+          <strong>Your saved cafes</strong>. These are private: only you can see your list, and it&rsquo;s deleted with your account.
+        </li>
+        <li>
           <strong>A login cookie</strong> that keeps you signed in. We don&rsquo;t use advertising or tracking cookies.
         </li>
         <li>

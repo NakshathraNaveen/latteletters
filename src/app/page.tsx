@@ -1,12 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
-import { HOW_IT_WORKS } from "@/data/how-it-works";
 import { Chips } from "@/components/Chips";
 import { DrinkCup } from "@/components/DrinkCup";
 import { NearMeButton } from "@/components/NearMeButton";
-import { Polaroid } from "@/components/Polaroid";
 import { SearchBar } from "@/components/SearchBar";
-import { LaceDivider, MetalStar, PaperStar, Sparkle, Sticker } from "@/components/decor";
+import { MetalStar, Sparkle, Sticker } from "@/components/decor";
+import { HowItWorks } from "@/components/HowItWorks";
 import { MoodFolders, type MoodFolder } from "@/components/MoodFolders";
 import { PostCard } from "@/components/PostCards";
 import { DRINKS, type DrinkId } from "@/lib/drinks";
@@ -25,28 +23,6 @@ const MOODS: MoodFolder[] = MOOD_FOLDERS.map((m) => ({
 
 const STAMP_BG = ["bg-cotton", "bg-lavender/60", "bg-lemon", "bg-[#c5d28a]/70", "bg-hotpink/50", "bg-lime/50"];
 const STAMP_DRINKS: DrinkId[] = ["iced-latte", "matcha-latte", "cappuccino", "bubble-tea", "cold-brew", "strawberry-matcha", "latte", "dirty-chai"];
-
-/** Illustrated stand-ins for the "how it works" polaroids (used when no image is set). */
-const HOW_FALLBACK = [
-  <div key="craving" className="grid aspect-square place-items-center bg-cotton">
-    <DrinkCup drink="dirty-chai" className="h-3/4 w-auto" />
-  </div>,
-  <div key="vibe" className="flex aspect-square flex-wrap content-center justify-center gap-2 bg-lavender/60 p-4">
-    {["🧸 cozy", "📚 study", "💌 date", "📸 aesthetic", "🌙 late-night"].map((t, i) => (
-      <span
-        key={t}
-        className="rounded-full border-2 border-cola bg-lemon px-3 py-1 text-sm font-semibold"
-        style={{ transform: `rotate(${[-6, 4, -3, 6, -4][i]}deg)` }}
-      >
-        {t}
-      </span>
-    ))}
-  </div>,
-  <div key="say-hi" className="relative grid aspect-square place-items-center bg-hotpink/70">
-    <PaperStar size={150} className="absolute opacity-90" />
-    <span className="relative font-display text-3xl font-extrabold tracking-tight">@ your new spot</span>
-  </div>,
-];
 
 const NOTES = [
   { text: "found a london fog on a rainy tuesday and it got me through midterms 🫖", who: "— a sleepy student", tone: "bg-lemon", r: -4 },
@@ -177,55 +153,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ─────────────────────────── HOW IT WORKS ─────────────────────────── */}
-      <section id="how" className="relative bg-lemon">
-        <LaceDivider color="var(--color-lemon)" flip className="absolute inset-x-0 -top-7" />
-        <div className="mx-auto max-w-6xl px-5 py-20">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="font-display text-5xl font-extrabold tracking-tighter md:text-6xl">
-              how it <span className="font-serif font-normal italic">works</span>
-            </h2>
-            <p className="max-w-sm font-hand text-2xl leading-tight">three steps, zero boring map pins.</p>
-          </div>
-
-          <div data-scrub="draw" className="relative">
-          {/* coffee-drip line that draws itself between the polaroids as you scroll */}
-          <svg aria-hidden viewBox="0 0 1000 300" preserveAspectRatio="none" className="pointer-events-none absolute inset-x-0 top-1/2 hidden h-48 w-full -translate-y-1/2 sm:block">
-            <path
-              data-draw
-              d="M30 160 C150 20 250 280 360 150 S560 40 640 170 S860 260 970 120"
-              fill="none"
-              stroke="var(--color-hotpink)"
-              strokeWidth="5"
-              strokeLinecap="round"
-            />
-          </svg>
-          <ol data-fx="pin" className="relative mt-10 grid grid-cols-3 gap-3 sm:mt-14 sm:gap-8">
-            {HOW_IT_WORKS.map((step, i) => (
-              <li key={step.caption} data-fx-item className={i === 1 ? "mt-6 sm:mt-10" : ""}>
-                <Polaroid rotate={[-4, 3, -2][i]} caption={<><b>{i + 1}.</b> {step.caption}</>}>
-                  {step.image ? (
-                    <div className="relative aspect-square">
-                      <Image
-                        src={step.image}
-                        alt={step.alt}
-                        fill
-                        sizes="33vw"
-                        className="object-cover"
-                        style={{ objectPosition: step.focus }}
-                      />
-                    </div>
-                  ) : (
-                    HOW_FALLBACK[i]
-                  )}
-                </Polaroid>
-              </li>
-            ))}
-          </ol>
-          </div>
-        </div>
-        <LaceDivider color="var(--color-lemon)" className="absolute inset-x-0 -bottom-7 z-10" />
-      </section>
+      {/* ─────────────────────────── HOW IT WORKS (letter from naksh) ─────────────────────────── */}
+      <HowItWorks />
 
       {/* ─────────────────────────── WHERE TO? (passport stamps) ─────────────────────────── */}
       <section aria-labelledby="where" className="mx-auto max-w-6xl px-5 pt-24">

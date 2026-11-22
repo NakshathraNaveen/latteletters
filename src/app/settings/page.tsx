@@ -28,6 +28,9 @@ async function Settings() {
         <Link href={`/u/${user.profile.username}`} className={btnQuiet}>
           view my profile →
         </Link>
+        <Link href={`/u/${user.profile.username}#saved`} className={btnQuiet}>
+          my saved cafes ♡
+        </Link>
         {user.profile.isAdmin && (
           <Link href="/admin" className={btnQuiet}>
             moderation queue

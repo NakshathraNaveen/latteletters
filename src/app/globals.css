@@ -173,6 +173,24 @@ body {
   background: none;
   border: none;
 }
+/* a bunch of cafes close together: a pink bubble with the count
+   (doubled class beats leaflet's own .leaflet-marker-icon { display: block }) */
+.leaflet-marker-icon.map-cluster {
+  display: grid;
+  place-items: center;
+  border: 2.5px solid var(--color-cola);
+  border-radius: 999px;
+  background: var(--color-hotpink);
+  box-shadow: 2px 2px 0 var(--color-cola);
+  color: var(--color-cola);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.leaflet-marker-icon.map-cluster:hover,
+.leaflet-marker-icon.map-cluster:focus-visible {
+  background: var(--color-lemon);
+}
 .leaflet-container {
   font-family: var(--font-sans);
   background: var(--color-cotton-deep);

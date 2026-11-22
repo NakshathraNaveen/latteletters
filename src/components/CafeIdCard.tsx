@@ -9,6 +9,7 @@ import type { CafeStats } from "@/lib/posts";
 import { VIBES } from "@/lib/vibes";
 import { DrinkCup } from "./DrinkCup";
 import { BinderClip } from "./decor";
+import { SaveButton } from "./SaveButton";
 
 export const ACCENT_BG: Record<Cafe["accent"], string> = {
   hotpink: "bg-hotpink",
@@ -81,7 +82,20 @@ export function StatsSticker({ stats, className = "" }: { stats?: CafeStats; cla
   );
 }
 
-export function CafeIdCard({ cafe, reasons, index = 0, stats }: { cafe: Cafe; reasons?: string[]; index?: number; stats?: CafeStats }) {
+export function CafeIdCard({
+  cafe,
+  reasons,
+  index = 0,
+  stats,
+  saved,
+}: {
+  cafe: Cafe;
+  reasons?: string[];
+  index?: number;
+  stats?: CafeStats;
+  /** true/false = logged in, null = logged out (heart links to login), undefined = no heart */
+  saved?: boolean | null;
+}) {
   const tilt = [-1.5, 1.2, -0.8, 1.8, -1.2, 0.8][index % 6];
   const distance = formatDistance(cafe.distanceKm);
   const place = placeLine(cafe);
@@ -90,6 +104,7 @@ export function CafeIdCard({ cafe, reasons, index = 0, stats }: { cafe: Cafe; re
     <article data-fx-item className="relative pt-5 sm:pt-7" style={{ transform: `rotate(${tilt}deg)` }}>
       <div className="swing relative">
         <BinderClip className="absolute -top-5 left-1/2 z-10 w-11 -translate-x-1/2 sm:-top-7 sm:w-16" />
+        {saved !== undefined && <SaveButton cafeId={cafe.id} cafeName={cafe.name} saved={saved} className="absolute -left-2 -top-2 z-20 sm:-left-3 sm:-top-3" />}
         <div
           className={`paper relative overflow-hidden rounded-2xl border-2 border-cola/80 p-2.5 shadow-[var(--shadow-paper)] sm:p-4 transition-shadow hover:shadow-[var(--shadow-lift)] ${ACCENT_BG[cafe.accent]}`}
         >

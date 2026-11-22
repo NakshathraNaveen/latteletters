@@ -15,6 +15,8 @@ import { openState, type OpenState } from "@/lib/hours";
 import { SpotifyPlayer } from "@/components/SpotifyPlayer";
 import { MOOD_PLAYLISTS } from "@/data/playlists";
 import { moodPlaylist } from "@/lib/spotify";
+import { getCurrentUser } from "@/lib/auth";
+import { savedIdsSafe } from "@/lib/saved";
 import { cafesNear, distanceKm, geocode, roundCoord } from "@/lib/osm";
 import { DEFAULT_RADIUS, POPULAR_PLACES, RADII } from "@/lib/places";
 import { cafeStatsSafe, type CafeStats } from "@/lib/posts";
@@ -149,6 +151,8 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
     stats,
   );
   const shown = results.slice(0, MAX_RESULTS);
+  const viewer = await getCurrentUser().catch(() => null);
+  const saved = await savedIdsSafe(viewer?.profile ? viewer.id : undefined, shown.map((r) => r.cafe.id));
   const hiddenNoHours = active.has("open") ? ranked.filter((r) => passes(r.cafe, new Set([...active].filter((k) => k !== "open"))) && ctx.open.get(r.cafe.id) === "unknown").length : 0;
 
   const fParam = (keys: Set<FilterKey>) => FILTERS.map((f) => f.key).filter((k) => keys.has(k)).join(",");
@@ -261,7 +265,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
               ) : (
                 <div data-fx="rise" className="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-3">
                   {shown.map((res, i) => (
-                    <CafeIdCard key={res.cafe.id} cafe={res.cafe} reasons={q ? res.reasons : undefined} index={i} stats={stats[res.cafe.id]} />
+                    <CafeIdCard key={res.cafe.id} cafe={res.cafe} reasons={q ? res.reasons : undefined} index={i} stats={stats[res.cafe.id]} saved={saved ? saved.has(res.cafe.id) : null} />
                   ))}
                 </div>
               )}

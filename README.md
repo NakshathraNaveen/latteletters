@@ -15,11 +15,12 @@ Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me
 - **Mood and vibe search**: phrases like `late night` or `cozy study` map to vibe tags inferred from real map data (wifi, outdoor seating, opening hours, independent vs chain, Instagram, cuisine).
 - **"Why this matched"** on every result ("has wifi", "open late", "tea spot"), plus a friendly empty state.
 - **Folder-tab distance picker**: walkable (1 km), short ride (3 km), worth the trip (8 km).
-- **Sort, filter and map**: sort by best match, closest or top rated. Filter to open now (OSM opening hours parsed in each cafe's own time zone), vegan options, wifi, outdoor seating or independent, with live counts on each chip. Flip to a Leaflet map with cup-shaped pins. All of it lives in the URL, so results are shareable and work without JS.
+- **Sort, filter and map**: sort by best match, closest or top rated. Filter to open now (OSM opening hours parsed in each cafe's own time zone), vegan options, wifi, outdoor seating or independent, with live counts on each chip. Flip to a Leaflet map with cup-shaped pins that group into numbered bubbles in busy areas (leaflet.markercluster). All of it lives in the URL, so results are shareable and work without JS.
 - **Ratings on cards**: cafe cards show their average stars and love-note count, cached per cafe and refreshed the moment someone posts.
 - **Cafe pages**: ID card with address and opening hours, amenities, social links with click tracking, an OpenStreetMap embed, directions, and an "edit on OpenStreetMap" link for corrections.
 - **Accounts (passwordless)**: log in with an emailed one-time link, then pick a username and design a cup avatar (cup style incl. kulhad and cutting chai glass, drink, colour and pattern). Public profiles live at `/u/<username>` with a "regular" badge. "Delete my account" removes every post and photo.
 - **Reviews & love notes**: a star rating, the drink you ordered, vibe tags and up to 3 photos, or a short sticky-note "love note". You can edit and delete your own, and they appear instantly thanks to tag-based cache invalidation.
+- **Saved cafes**: tap ♡ on any cafe card or cafe page to keep it on a private shelf on your profile. Saves live in a table with RLS on and no policies, so only the server can read them, and they're deleted with your account.
 - **Music**: add a Spotify song, album or playlist to any review or love note ("what was playing?"). Each mood can have its own playlist (set in `src/data/playlists.ts`), shown in its home-page folder and on mood searches. Links are checked with Spotify's public oEmbed (no API key). The official player only loads when someone presses play, so pages stay fast and Spotify cookies aren't set until then.
 - **Private by default**: photos are resized in the browser before upload, which strips EXIF/GPS metadata. Emails are never shown.
 - **Moderation**:
@@ -27,6 +28,7 @@ Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me
   - rate limits: 5 posts an hour, 1 review per cafe, 3 notes per cafe a day
   - one-click reports that auto-hide a post after 2 reports
   - an admin review queue
+- **How it works as a letter**: the home page opens with a handwritten letter from the creator, a "this is for you if…" checklist and three polaroid steps. All the words live in `src/data/how-it-works.ts`.
 - **Meet the creator** page with an envelope infographic, photobooth strip and go-to-order receipt.
 - **Scroll-driven motion** (GSAP ScrollTrigger): parallax hero, sliding ribbon, a drip line that draws itself, mood folders that file into place.
 - **Accessible**: respects `prefers-reduced-motion`, keyboard navigation and a skip link, visible focus styles, ARIA labels. Search is a plain GET form, so it works before JS loads.

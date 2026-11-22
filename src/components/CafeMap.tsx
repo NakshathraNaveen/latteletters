@@ -3,9 +3,11 @@
 /**
  * Results on a map: OpenStreetMap tiles via Leaflet (free, no API key).
  * Leaflet touches `window`, so it is imported inside the effect and the
- * map only loads when someone switches to map view.
+ * map only loads when someone switches to map view. Nearby pins are grouped
+ * into numbered bubbles (leaflet.markercluster) that split as you zoom in.
  */
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
 import { useEffect, useRef } from "react";
 
 export type MapPin = {
@@ -42,6 +44,9 @@ export default function CafeMap({ pins, centre }: { pins: MapPin[]; centre: { la
     let cleanup = () => {};
     (async () => {
       const L = (await import("leaflet")).default;
+      // the cluster plugin attaches itself to the global L
+      (window as unknown as { L: typeof L }).L = L;
+      await import("leaflet.markercluster");
       if (cancelled || !el.current) return;
       const map = L.map(el.current, { scrollWheelZoom: false, zoomControl: true }).setView([centre.lat, centre.lng], 14);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -55,6 +60,20 @@ export default function CafeMap({ pins, centre }: { pins: MapPin[]; centre: { la
         keyboard: false,
       }).addTo(map);
 
+      const groups = L.markerClusterGroup({
+        maxClusterRadius: 40,
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        disableClusteringAtZoom: 18,
+        iconCreateFunction: (cluster) => {
+          const n = cluster.getChildCount();
+          return L.divIcon({
+            html: `<span class="map-cluster__count" aria-hidden="true">${n}</span><span class="sr-only">${n} cafes here, zoom in to see them</span>`,
+            className: "map-cluster",
+            iconSize: [40, 40],
+          });
+        },
+      });
       const bounds = L.latLngBounds([[centre.lat, centre.lng]]);
       for (const p of pins) {
         bounds.extend([p.lat, p.lng]);
@@ -73,8 +92,9 @@ export default function CafeMap({ pins, centre }: { pins: MapPin[]; centre: { la
             </div>`,
             { closeButton: true, maxWidth: 220 },
           )
-          .addTo(map);
+          .addTo(groups);
       }
+      groups.addTo(map);
       if (pins.length) map.fitBounds(bounds, { padding: [36, 36], maxZoom: 16 });
       cleanup = () => map.remove();
     })();

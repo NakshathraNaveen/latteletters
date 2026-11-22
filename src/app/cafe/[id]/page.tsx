@@ -8,6 +8,9 @@ import { DripLoader } from "@/components/DripLoader";
 import { NotesWall } from "@/components/NotesWall";
 import { SocialLinks } from "@/components/SocialLinks";
 import { BinderClip, LaceDivider, MetalStar } from "@/components/decor";
+import { SaveButton } from "@/components/SaveButton";
+import { getCurrentUser } from "@/lib/auth";
+import { savedIdsSafe } from "@/lib/saved";
 import { cafeById, cafesNear, distanceKm, roundCoord } from "@/lib/osm";
 import { cafeStatsSafe } from "@/lib/posts";
 import type { Cafe } from "@/lib/types";
@@ -91,6 +94,9 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
         <div>
           {place && <p className="font-serif text-2xl">{place}</p>}
           <h1 className="mt-1 break-words font-display text-[clamp(3rem,9vw,6.5rem)] leading-[0.9]">{cafe.name}</h1>
+          <Suspense fallback={<div className="mt-4 h-10" />}>
+            <SaveCafe cafe={cafe} />
+          </Suspense>
           <p className="mt-4 font-label text-sm uppercase tracking-wider">
             {cafe.brand ? `part of ${cafe.brand}` : "independent cafe ✦"}
             {cafe.cuisine.length > 0 && ` · ${cafe.cuisine.map(prettyCuisine).join(", ")}`}
@@ -267,11 +273,23 @@ async function Nearby({ cafe }: { cafe: Cafe }) {
     .slice(0, 3);
   if (!picks.length) return <p className="mt-6 font-hand text-2xl">no other mapped cafes within a kilometre!</p>;
   const stats = await cafeStatsSafe(picks.map((c) => c.id));
+  const saved = await viewerSaved(picks.map((c) => c.id));
   return (
     <div data-fx="rise" className="mt-8 grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-3">
       {picks.map((c, i) => (
-        <CafeIdCard key={c.id} cafe={c} index={i} stats={stats[c.id]} />
+        <CafeIdCard key={c.id} cafe={c} index={i} stats={stats[c.id]} saved={saved ? saved.has(c.id) : null} />
       ))}
     </div>
   );
+}
+
+/** The logged-in person's saved cafes among these ids (null when logged out). */
+async function viewerSaved(ids: string[]) {
+  const viewer = await getCurrentUser().catch(() => null);
+  return savedIdsSafe(viewer?.profile ? viewer.id : undefined, ids);
+}
+
+async function SaveCafe({ cafe }: { cafe: Cafe }) {
+  const saved = await viewerSaved([cafe.id]);
+  return <SaveButton cafeId={cafe.id} cafeName={cafe.name} saved={saved ? saved.has(cafe.id) : null} variant="pill" className="relative mt-4 inline-block" />;
 }
