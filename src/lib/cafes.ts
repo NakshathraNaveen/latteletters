@@ -136,7 +136,7 @@ const found = (c: Cafe, kind: string): FoundCafe => ({
  * word). Short name-only queries are asked both ways.
  */
 async function photonForgiving(q: string, near: { lat: number; lng: number } | null): Promise<FoundCafe[]> {
-  const words = q.trim().split(/s+/);
+  const words = q.trim().split(/\s+/);
   const joined = words.join("");
   if (words.length < 2 || words.length > 3 || q.includes(",") || joined.length > 30) return photon(q, near);
   const [plain, squashed] = await Promise.allSettled([photon(q, near), photon(joined, near)]);
