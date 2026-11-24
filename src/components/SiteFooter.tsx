@@ -63,6 +63,9 @@ export function SiteFooter() {
           <a href="/people" className="underline underline-offset-4">
             Find people
           </a>
+          <a href="/notes" className="underline underline-offset-4">
+            Love notes
+          </a>
           <a href="/find" className="underline underline-offset-4">
             Review a cafe
           </a>

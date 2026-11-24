@@ -217,7 +217,12 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-5 pt-28">
         <p className="font-serif text-2xl italic">the wall of</p>
         <h2 className="font-display text-5xl font-extrabold tracking-tighter md:text-6xl">love notes</h2>
-        <p className="mt-2 max-w-lg">Little testimonies from fellow cafe-hoppers, fresh off the wall.</p>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+          <p className="max-w-lg">Little testimonies from fellow cafe-hoppers, fresh off the wall.</p>
+          <Link href="/notes" className="font-hand text-2xl underline decoration-hotpink decoration-2 underline-offset-4 hover:decoration-cola">
+            read every love note →
+          </Link>
+        </div>
 
         {/* accounts are open */}
         <div className="relative mt-8 flex flex-col gap-4 rounded-3xl border-2 border-dashed border-cola bg-lemon/80 p-6 sm:flex-row sm:items-center sm:justify-between">

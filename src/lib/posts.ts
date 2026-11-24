@@ -106,6 +106,28 @@ export async function recentPosts(limit = 4): Promise<Post[]> {
   return (data as unknown as Row[]).map(toPost);
 }
 
+export const WALL_PAGE_SIZE = 24;
+
+/** One page of the whole wall (every visible post, newest first), for /notes. */
+export async function wallPage(kind: PostKind | null, page: number): Promise<{ posts: Post[]; total: number }> {
+  "use cache";
+  cacheTag(RECENT_TAG);
+  const from = (page - 1) * WALL_PAGE_SIZE;
+  let query = supabasePublic().from("posts").select(COLUMNS, { count: "exact" });
+  if (kind) query = query.eq("kind", kind);
+  const { data, error, count } = await query.order("created_at", { ascending: false }).order("id").range(from, from + WALL_PAGE_SIZE - 1);
+  if (error?.code === "PGRST103") {
+    // asked for a page past the end
+    let head = supabasePublic().from("posts").select("id", { count: "exact", head: true });
+    if (kind) head = head.eq("kind", kind);
+    const { count: total, error: e2 } = await head;
+    if (e2) throw new Error(e2.message);
+    return { posts: [], total: total ?? 0 };
+  }
+  if (error) throw new Error(error.message);
+  return { posts: (data as unknown as Row[]).map(toPost), total: count ?? 0 };
+}
+
 export type CafeStats = { avg: number; reviews: number; notes: number };
 
 /** Star average + post counts for a set of cafes (search cards, "also nearby").
