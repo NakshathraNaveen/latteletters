@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { AccountButton } from "./AccountButton";
-import { SearchBar } from "./SearchBar";
 import { Sparkle } from "./decor";
 import { getCurrentUser } from "@/lib/auth";
 import { pendingInviteCount } from "@/lib/crews";
@@ -37,7 +36,7 @@ function LatteLevel() {
   );
 }
 
-/** Header (FR-1): logo, nav, account and compact search on every page.
+/** Header (FR-1): logo, nav, account, and a search shortcut on phones.
  *  Phones get the same pieces in two tidy rows; nothing wraps mid-label. */
 export function SiteHeader() {
   return (
@@ -98,9 +97,6 @@ export function SiteHeader() {
             <AccountButton />
           </Suspense>
           <LatteLevel />
-        </div>
-        <div className="hidden md:block">
-          <SearchBar variant="compact" />
         </div>
       </div>
     </header>

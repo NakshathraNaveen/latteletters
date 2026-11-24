@@ -3,7 +3,6 @@
  * loads and gives shareable URLs like /search?q=matcha&where=Tokyo.
  *
  *  - hero:    "what" + "where" boxes + near-me button
- *  - compact: one box for the header ("matcha in tokyo" works too)
  *  - place:   "anywhere else?" city box under the passport stamps
  */
 import { NearMeButton } from "./NearMeButton";
@@ -22,7 +21,7 @@ export function SearchBar({
   coords,
   radius,
 }: {
-  variant?: "hero" | "compact" | "place";
+  variant?: "hero" | "place";
   defaultQuery?: string;
   defaultWhere?: string;
   /** keep searching around the visitor's (rounded) location if no city is typed */
@@ -53,30 +52,6 @@ export function SearchBar({
             className="shrink-0 rounded-full border-2 border-cola bg-hotpink px-4 py-1.5 font-display text-sm text-cola transition hover:bg-cola hover:text-cotton sm:text-base"
           >
             stamp it ✈
-          </button>
-        </div>
-      </form>
-    );
-  }
-
-  if (variant === "compact") {
-    return (
-      <form action="/search" method="get" role="search" className="w-full max-w-xs">
-        <label htmlFor="search-compact" className="sr-only">
-          Search for a drink, vibe or place
-        </label>
-        <div className="flex items-center gap-2 rounded-full border-[3px] border-cola bg-lemon p-1 pl-4 shadow-[3px_3px_0_var(--color-cola)]">
-          <SearchIcon className="size-4 shrink-0" />
-          <input
-            id="search-compact"
-            name="q"
-            type="search"
-            autoComplete="off"
-            placeholder="matcha in tokyo…"
-            className="min-w-0 flex-1 bg-transparent py-1 text-sm text-cola placeholder:text-cola/55 focus:outline-none"
-          />
-          <button type="submit" className="shrink-0 rounded-full bg-hotpink px-3 py-1 font-display text-sm text-cola transition hover:bg-cola hover:text-cotton">
-            go
           </button>
         </div>
       </form>
