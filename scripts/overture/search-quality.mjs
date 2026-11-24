@@ -67,16 +67,18 @@ async function search(q, near) {
     rows = [...rows, ...more.filter((r) => !seen.has(r.id))];
   }
   if (GENTLE_MS) await new Promise((r) => setTimeout(r, GENTLE_MS));
+  // same order as findCafes: clearly better match first, close calls to the nearer cafe
+  const km = (r) => (near ? Math.hypot(r.lat - near.lat, (r.lng - near.lng) * Math.cos((near.lat * Math.PI) / 180)) : 0);
   return rows
-    .map((r) => ({ id: r.id, score: matchScore(q, r.name, [r.street, r.city].filter(Boolean).join(", ")) }))
+    .map((r) => ({ id: r.id, km: km(r), score: matchScore(q, r.name, [r.street, r.city].filter(Boolean).join(", ")) }))
     .filter((r) => r.score >= 0.45)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => (Math.abs(b.score - a.score) > 0.08 ? b.score - a.score : 0) || a.km - b.km)
     .map((r) => r.id);
 }
 
 /* ───────────── run ───────────── */
 const { rows: sample } = await db.query(
-  `select id, name, city, lat, lng from public.overture_cafes tablesample bernoulli (0.05) repeatable (7)
+  `select id, name, city, lat, lng from public.overture_cafes tablesample system (0.3) repeatable (11)
     where char_length(name) between 4 and 40 and name ~ '[A-Za-z]' limit $1`,
   [SAMPLES],
 );

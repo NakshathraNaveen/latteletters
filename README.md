@@ -10,7 +10,7 @@ Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me
 
 ## Features
 
-- **Works worldwide, small cafes included**: ~1.5 million cafes, coffee shops, boba shops and tea rooms from [Overture Maps](https://overturemaps.org), loaded into our own database (about 8× more cafes than OpenStreetMap alone in downtown Toronto). Countries not loaded yet fall back to live OpenStreetMap data. Type any city or neighbourhood, or use your location (rounded to ~110 m, never stored).
+- **Works worldwide, small cafes included**: ~165,000 cafes, coffee shops, boba shops and tea rooms across Canada and the US from [Overture Maps](https://overturemaps.org), loaded into our own database (about 8× more cafes than OpenStreetMap alone in downtown Toronto). Everywhere else uses live OpenStreetMap data. (The whole world is ~1.5M cafes, too much for the free database plan.) Type any city or neighbourhood, or use your location (rounded to ~110 m, never stored).
 - **Review a cafe you visited** (`/find`): search any cafe by name as you type (Overture + OpenStreetMap via Photon, de-duplicated), then leave a review. No need to browse for it first.
 - **Add a missing cafe** (`/add-cafe`): if a spot isn't on the map, add it with a name, kind and a pin you drag into place, then write the first review. Community cafes show up in search results for everyone and stay for good, even if the account that added them is deleted. Duplicate check, profanity filter, 5 a day per person, and 3 reports hide one until an admin looks.
 - **Drink search with an alias dictionary**: viral names, nicknames and misspellings resolve to the right drink (`whipped coffee` → dalgona, `capuccino` → cappuccino, `boba` → bubble tea).
@@ -108,7 +108,7 @@ Overture publishes a new release every month. To refresh (takes ~10 minutes, mos
 
 ```bash
 cd scripts/overture && npm install
-npm run import -- --all            # or --countries CA,US
+npm run import -- --countries CA,US   # --all is the whole world: too big for the free plan
 ```
 
 It upserts country by country, removes cafes that closed or disappeared, and stops before the database reaches `--max-db-mb` (default 460, under the free Supabase plan's 500 MB) so the site never goes read-only.

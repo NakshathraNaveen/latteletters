@@ -131,6 +131,22 @@ const found = (c: Cafe, kind: string): FoundCafe => ({
 });
 
 /**
+ * Photon matches whole words, so "lala bakeshop" misses "La La Bakeshop" but
+ * the joined-up "lalabakeshop" finds it (Photon forgives typos inside one
+ * word). Short name-only queries are asked both ways.
+ */
+async function photonForgiving(q: string, near: { lat: number; lng: number } | null): Promise<FoundCafe[]> {
+  const words = q.trim().split(/s+/);
+  const joined = words.join("");
+  if (words.length < 2 || words.length > 3 || q.includes(",") || joined.length > 30) return photon(q, near);
+  const [plain, squashed] = await Promise.allSettled([photon(q, near), photon(joined, near)]);
+  if (plain.status === "rejected" && squashed.status === "rejected") throw plain.reason;
+  const out = plain.status === "fulfilled" ? [...plain.value] : [];
+  for (const f of squashed.status === "fulfilled" ? squashed.value : []) if (!out.some((o) => o.id === f.id)) out.push(f);
+  return out;
+}
+
+/**
  * Cafes matching a name: community, Overture, and OpenStreetMap (worldwide,
  * via Photon) for anything Overture doesn't have. Each source finds
  * candidates generously, then everything is ranked by matchScore, so small
@@ -144,7 +160,7 @@ export async function findCafes(q: string, near: { lat: number; lng: number } | 
       (r) => ({ ok: true as const, r }),
       () => ({ ok: false as const, r: [] as Cafe[] }),
     ),
-    photon(q, near).then(
+    photonForgiving(q, near).then(
       (r) => ({ ok: true as const, r }),
       () => ({ ok: false as const, r: [] as FoundCafe[] }),
     ),

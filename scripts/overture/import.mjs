@@ -1,7 +1,7 @@
 // Imports cafes from Overture Maps (https://overturemaps.org) into Supabase.
 //
 //   cd scripts/overture && npm install
-//   npm run import -- --all                      # the whole world (~1.5M cafes)
+//   npm run import -- --all                      # the whole world (~1.5M cafes; too slow on the free Supabase plan)
 //   npm run import -- --countries CA,US          # just some countries
 //   npm run import -- --all --release 2026-11-18.0 --max-db-mb 460
 //
