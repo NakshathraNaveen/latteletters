@@ -93,6 +93,12 @@ export default function Home() {
             </div>
 
             <Chips className="mt-6" />
+            <p className="mt-5 font-hand text-2xl">
+              already been somewhere?{" "}
+              <Link href="/find" className="underline decoration-hotpink decoration-2 underline-offset-4 hover:text-hotpink">
+                review a cafe you visited →
+              </Link>
+            </p>
           </div>
 
           {/* poster collage: echoing words behind a floating cut-out drink */}

@@ -169,16 +169,32 @@ body {
   }
 }
 
-/* ── search map (Leaflet) ── */
+/* ── maps (MapLibre + OpenFreeMap) ── */
 .map-pin {
+  display: block;
+  padding: 0;
   background: none;
   border: none;
+  cursor: pointer;
+  line-height: 0;
 }
-/* a bunch of cafes close together: a pink bubble with the count
-   (doubled class beats leaflet's own .leaflet-marker-icon { display: block }) */
-.leaflet-marker-icon.map-cluster {
+.map-pin:focus-visible {
+  outline: 3px solid var(--color-hotpink);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.map-pin--drag {
+  cursor: grab;
+}
+.map-pin--drag:active {
+  cursor: grabbing;
+}
+/* a bunch of cafes close together: a pink bubble with the count */
+.map-cluster {
   display: grid;
   place-items: center;
+  width: 40px;
+  height: 40px;
   border: 2.5px solid var(--color-cola);
   border-radius: 999px;
   background: var(--color-hotpink);
@@ -187,28 +203,44 @@ body {
   font-family: var(--font-display);
   font-size: 1.05rem;
   line-height: 1;
+  cursor: pointer;
 }
-.leaflet-marker-icon.map-cluster:hover,
-.leaflet-marker-icon.map-cluster:focus-visible {
+.map-cluster:hover,
+.map-cluster:focus-visible {
   background: var(--color-lemon);
+  outline: none;
 }
-.leaflet-container {
+.maplibregl-map {
   font-family: var(--font-sans);
-  background: var(--color-cotton-deep);
 }
-.leaflet-container .leaflet-popup-content-wrapper {
+.maplibregl-popup-content {
   background: var(--color-lemon);
   color: var(--color-cola);
   border: 2px solid var(--color-cola);
   border-radius: 1rem;
   box-shadow: 3px 3px 0 var(--color-cola);
+  padding: 0.75rem 1.75rem 0.75rem 1rem;
 }
-.leaflet-container .leaflet-popup-tip {
-  background: var(--color-lemon);
-  border: 2px solid var(--color-cola);
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: var(--color-cola);
 }
-.leaflet-container .leaflet-popup-content {
-  margin: 0.75rem 1rem;
+.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: var(--color-cola);
+}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--color-cola);
+}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--color-cola);
+}
+.maplibregl-popup-close-button {
+  font-size: 1.25rem;
+  padding: 0 0.5rem;
+  color: var(--color-cola);
 }
 .map-card__name {
   font-family: var(--font-display);
@@ -228,7 +260,7 @@ body {
 .map-card__muted {
   opacity: 0.7;
 }
-.leaflet-container a.map-card__link {
+.map-card a.map-card__link {
   color: var(--color-cola);
   font-weight: 700;
   text-decoration: underline;

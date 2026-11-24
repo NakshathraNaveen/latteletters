@@ -3,7 +3,7 @@
 import { updateTag } from "next/cache";
 import { requireProfile } from "@/lib/auth";
 import { isProfane, LIMITS, rateLimitReason } from "@/lib/moderation";
-import { cafeById } from "@/lib/osm";
+import { CAFE_ID, cafeById } from "@/lib/cafes";
 import { DRINKS } from "@/lib/drinks";
 import { isDrinkId, postsTag, RECENT_TAG, userTag, type PostKind } from "@/lib/posts";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -13,7 +13,6 @@ import { VIBES } from "@/lib/vibes";
 
 export type FormState = { error?: string; ok?: boolean; at?: number; kind?: PostKind };
 
-const CAFE_ID = /^(node|way|relation)-\d{1,15}$/;
 const UUID = /^[0-9a-f-]{36}$/;
 const PHOTO_PATH = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(webp|jpg)$/;
 const SWEET = "Let's keep it sweet! Please reword that without the strong language.";
@@ -108,7 +107,7 @@ export async function createPost(_: FormState, form: FormData): Promise<FormStat
   const song = await songTitleFor(input.song);
   if ("error" in song) return { error: song.error };
 
-  // the cafe name comes from OpenStreetMap, never from the browser
+  // the cafe name comes from the map (or our community list), never from the browser
   const cafe = await cafeById(input.cafeId).catch(() => null);
   if (!cafe) return { error: "Couldn't find this cafe on the map right now. Try again in a moment." };
 

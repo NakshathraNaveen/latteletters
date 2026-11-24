@@ -7,13 +7,19 @@ import { DrinkCup } from "@/components/DrinkCup";
 import { DripLoader } from "@/components/DripLoader";
 import { NotesWall } from "@/components/NotesWall";
 import { SocialLinks } from "@/components/SocialLinks";
+import { ReportCafeButton } from "@/components/ReportCafeButton";
+import { SpotMap } from "@/components/maps/SpotMap";
+import { AddedBanner } from "@/components/AddedBanner";
 import { BinderClip, LaceDivider, MetalStar } from "@/components/decor";
 import { SaveButton } from "@/components/SaveButton";
 import { AddToCrew } from "@/components/crews/AddToCrew";
+import { AddToList } from "@/components/lists/AddToList";
+import { UserAvatar } from "@/components/CupAvatar";
+import { myListsWithCafe, recommendationsFor } from "@/lib/lists";
 import { crewsWithCafe, myCrews } from "@/lib/crews";
 import { getCurrentUser } from "@/lib/auth";
 import { savedIdsSafe } from "@/lib/saved";
-import { cafeById, cafesNear, distanceKm, roundCoord } from "@/lib/osm";
+import { cafeById, cafesNear, distanceKm, roundCoord } from "@/lib/cafes";
 import { cafeStatsSafe } from "@/lib/posts";
 import type { Cafe } from "@/lib/types";
 import { VIBES, VIBE_RULES } from "@/lib/vibes";
@@ -54,6 +60,14 @@ function formatHours(raw: string): string[] {
 
 const prettyCuisine = (c: string) => c.replace(/_/g, " ");
 
+const ACCENT_HEX: Record<Cafe["accent"], string> = {
+  hotpink: "#f08cb8",
+  lavender: "#b9a9e8",
+  olive: "#c5d28a",
+  lime: "#d4f31e",
+  lemon: "#fffde9",
+};
+
 /* ───────────── page ───────────── */
 
 async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params"] }) {
@@ -65,12 +79,14 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
     return (
       <div className="mx-auto max-w-xl px-5 py-24 text-center">
         <h1 className="font-display text-4xl">the cafe map is a little busy</h1>
-        <p className="mt-2">OpenStreetMap didn&rsquo;t answer in time. Refresh in a few seconds.</p>
+        <p className="mt-2">The map didn&rsquo;t answer in time. Refresh in a few seconds.</p>
       </div>
     );
   }
   if (!cafe) notFound();
 
+  const community = cafe.source === "community";
+  const overture = cafe.source === "overture";
   const [osmType, osmId] = cafe.id.split("-");
   const place = placeLine(cafe);
   const address = [cafe.street, cafe.neighbourhood, cafe.city, cafe.country].filter(Boolean).join(", ");
@@ -81,7 +97,6 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
     cafe.vegan && "🌱 vegan options",
     cafe.wheelchair && "♿ wheelchair accessible",
   ].filter(Boolean) as string[];
-  const osm = `https://www.openstreetmap.org/export/embed.html?bbox=${cafe.lng - 0.006}%2C${cafe.lat - 0.004}%2C${cafe.lng + 0.006}%2C${cafe.lat + 0.004}&layer=mapnik&marker=${cafe.lat}%2C${cafe.lng}`;
 
   return (
     <article className="mx-auto max-w-6xl px-5 pt-8">
@@ -90,6 +105,11 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
           ← more cafes near here
         </Link>
       </nav>
+      {community && (
+        <Suspense fallback={null}>
+          <AddedBanner name={cafe.name} />
+        </Suspense>
+      )}
 
       {/* ─────────── header ─────────── */}
       <header className="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-10 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
@@ -100,7 +120,22 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
             <SaveCafe cafe={cafe} />
           </Suspense>
           <p className="mt-4 font-label text-sm uppercase tracking-wider">
-            {cafe.brand ? `part of ${cafe.brand}` : "independent cafe ✦"}
+            {community ? (
+              <>
+                community cafe ✦ added by{" "}
+                {cafe.addedBy ? (
+                  <Link href={`/u/${cafe.addedBy}`} className="underline underline-offset-2">
+                    @{cafe.addedBy}
+                  </Link>
+                ) : (
+                  "a latteletters regular"
+                )}
+              </>
+            ) : cafe.brand ? (
+              `part of ${cafe.brand}`
+            ) : (
+              "independent cafe ✦"
+            )}
             {cafe.cuisine.length > 0 && ` · ${cafe.cuisine.map(prettyCuisine).join(", ")}`}
           </p>
           {cafe.tags.length > 0 && (
@@ -184,29 +219,64 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
             {cafe.socials.length ? (
               <SocialLinks cafeId={cafe.id} socials={cafe.socials} />
             ) : (
-              <p className="text-cola/80">No socials on the map yet. If you know them, you can add them on OpenStreetMap (link below).</p>
+              <p className="text-cola/80">
+                {community || overture
+                  ? "No socials listed yet. Know their Instagram? Email us and we'll add it."
+                  : "No socials on the map yet. If you know them, you can add them on OpenStreetMap (link below)."}
+              </p>
             )}
           </div>
 
           <div className="mt-10 rounded-2xl border-2 border-dashed border-cola/50 bg-lemon/60 p-5">
             <h3 className="font-display text-xl">spotted a mistake?</h3>
-            <p className="mt-1 text-sm">
-              Cafe info comes from OpenStreetMap, the free map anyone can edit. Fix hours, add an Instagram, or mark it closed, and
-              latteletters updates within a day.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-              <a
-                href={`https://www.openstreetmap.org/edit?${osmType}=${osmId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline underline-offset-4"
-              >
-                edit on OpenStreetMap ↗
-              </a>
-              <a href="mailto:latteletters.contact@gmail.com?subject=latteletters%20listing%20update" className="underline underline-offset-4">
-                or email us
-              </a>
-            </div>
+            {community ? (
+              <>
+                <p className="mt-1 text-sm">
+                  Someone on latteletters added this cafe because it wasn&rsquo;t on the map yet. Wrong pin, closed, or not a real cafe? Let us know.
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold">
+                  <ReportCafeButton cafeId={cafe.id} />
+                  <a href="mailto:latteletters.contact@gmail.com?subject=latteletters%20listing%20update" className="underline underline-offset-4">
+                    or email us
+                  </a>
+                </div>
+              </>
+            ) : overture ? (
+              <>
+                <p className="mt-1 text-sm">
+                  This listing comes from Overture Maps, an open map of places, and we refresh it every month. Closed, moved, or not really a
+                  cafe? Tell us and we&rsquo;ll fix it.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+                  <a
+                    href={`mailto:latteletters.contact@gmail.com?subject=${encodeURIComponent(`latteletters listing update: ${cafe.name} (${cafe.id})`)}`}
+                    className="underline underline-offset-4"
+                  >
+                    email us a correction
+                  </a>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mt-1 text-sm">
+                  Cafe info comes from OpenStreetMap, the free map anyone can edit. Fix hours, add an Instagram, or mark it closed, and
+                  latteletters updates within a day.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+                  <a
+                    href={`https://www.openstreetmap.org/edit?${osmType}=${osmId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-4"
+                  >
+                    edit on OpenStreetMap ↗
+                  </a>
+                  <a href="mailto:latteletters.contact@gmail.com?subject=latteletters%20listing%20update" className="underline underline-offset-4">
+                    or email us
+                  </a>
+                </div>
+              </>
+            )}
           </div>
         </section>
 
@@ -216,7 +286,7 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
           </h2>
           <div className="relative mt-4 -rotate-1 bg-lemon p-3 pb-2 shadow-[var(--shadow-paper)]">
             <span className="tape -top-3 right-8 rotate-6" />
-            <iframe title={`Map showing the location of ${cafe.name}`} src={osm} loading="lazy" className="aspect-[4/3] w-full border-0" />
+            <SpotMap lat={cafe.lat} lng={cafe.lng} name={cafe.name} colour={ACCENT_HEX[cafe.accent]} />
             <p className="flex flex-wrap items-center justify-between gap-2 pt-2 font-hand text-xl">
               <span>{cafe.street ?? place}</span>
               <a
@@ -230,13 +300,31 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
             </p>
           </div>
           <p className="mt-3 text-right text-xs text-cola/70">
-            Map &amp; data ©{" "}
+            Map{" "}
+            <a href="https://openfreemap.org" className="underline" target="_blank" rel="noopener noreferrer">
+              OpenFreeMap
+            </a>{" "}
+            · {community || overture ? "map data" : "map & cafe data"} ©{" "}
             <a href="https://www.openstreetmap.org/copyright" className="underline" target="_blank" rel="noopener noreferrer">
               OpenStreetMap contributors
             </a>
+            {overture && (
+              <>
+                {" "}
+                · cafe data from{" "}
+                <a href="https://docs.overturemaps.org/attribution/" className="underline" target="_blank" rel="noopener noreferrer">
+                  Overture Maps Foundation
+                </a>{" "}
+                (CDLA-Permissive-2.0)
+              </>
+            )}
           </p>
         </section>
       </div>
+
+      <Suspense fallback={null}>
+        <Recommended cafeId={cafe.id} cafeName={cafe.name} />
+      </Suspense>
 
       {/* ─────────── reviews + love notes (Phase 2) ─────────── */}
       <section aria-labelledby="notes" className="mt-20 scroll-mt-24 rounded-3xl bg-cola p-6 text-cotton sm:p-8" id="love-notes">
@@ -295,7 +383,7 @@ async function viewerSaved(ids: string[]) {
 async function SaveCafe({ cafe }: { cafe: Cafe }) {
   const viewer = await getCurrentUser().catch(() => null);
   const me = viewer?.profile ? viewer.id : undefined;
-  const [saved, crews] = await Promise.all([
+  const [saved, crews, lists] = await Promise.all([
     savedIdsSafe(me, [cafe.id]),
     me
       ? myCrews(me)
@@ -305,11 +393,50 @@ async function SaveCafe({ cafe }: { cafe: Cafe }) {
           })
           .catch(() => [])
       : null,
+    me ? myListsWithCafe(me, cafe.id).catch(() => []) : null,
   ]);
   return (
     <div className="mt-4 flex flex-wrap items-start gap-3">
       <SaveButton cafeId={cafe.id} cafeName={cafe.name} saved={saved ? saved.has(cafe.id) : null} variant="pill" className="relative inline-block" />
       <AddToCrew cafeId={cafe.id} cafeName={cafe.name} crews={crews} />
+      <AddToList cafeId={cafe.id} cafeName={cafe.name} lists={lists} />
     </div>
+  );
+}
+
+/** "what people order here": from public cafe lists that include this cafe. */
+async function Recommended({ cafeId, cafeName }: { cafeId: string; cafeName: string }) {
+  const recs = await recommendationsFor(cafeId).catch(() => []);
+  if (!recs.length) return null;
+  return (
+    <section aria-labelledby="recommended" className="mt-20">
+      <h2 id="recommended" className="font-display text-4xl">
+        on people&rsquo;s lists <span className="font-serif">&amp; what they order</span>
+      </h2>
+      <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {recs.map((r, i) => (
+          <li key={`${r.listId}`} className="paper rounded-2xl border-2 border-cola bg-lemon p-4 shadow-[3px_3px_0_var(--color-cola)]" style={{ rotate: `${[-0.7, 0.5, -0.3][i % 3]}deg` }}>
+            <p className="flex items-center gap-2 text-sm">
+              <UserAvatar avatar={r.avatar} className="h-7 w-auto" />
+              <Link href={`/u/${r.username}`} className="font-semibold underline-offset-2 hover:underline">
+                @{r.username}
+              </Link>
+            </p>
+            {r.recommend ? (
+              <p className="mt-2">
+                <span className="font-label text-[11px] uppercase tracking-wider">orders: </span>
+                <span className="font-semibold">{r.recommend}</span>
+              </p>
+            ) : (
+              <p className="mt-2 text-cola/80">loves {cafeName}</p>
+            )}
+            {r.note && <p className="mt-1 font-note text-lg leading-snug">{r.note}</p>}
+            <Link href={`/lists/${r.listId}`} className="mt-3 inline-block text-sm underline underline-offset-4">
+              on <span aria-hidden>{r.listEmoji}</span> {r.listTitle} →
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

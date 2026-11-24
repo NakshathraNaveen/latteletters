@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { CREATOR, GO_TO_ORDER } from "@/data/creator";
-import { Barcode } from "@/components/CafeIdCard";
+import { OrderReceipt } from "@/components/OrderReceipt";
 import { DrinkCup } from "@/components/DrinkCup";
 import { LaceDivider, MetalStar, Sparkle } from "@/components/decor";
 
@@ -43,22 +43,10 @@ function Scallop({ className = "" }: { className?: string }) {
   );
 }
 
-/** blank-line placeholder for anything not filled in yet */
-const blank = (v: string | null) => v ?? "_______________";
 
 /* ───────────── page ───────────── */
 
 export default function AboutPage() {
-  const o = GO_TO_ORDER;
-  const orderRows: [string, string | null][] = [
-    ["Name", CREATOR.nickname],
-    ["Drink", o.drink],
-    ["Size", o.size],
-    ["Milk", o.milk],
-    ["Sweetness", o.sweetness],
-    ["Temp", o.temperature],
-    ["Extras", o.extras],
-  ];
 
   return (
     <div className="pb-8">
@@ -241,35 +229,7 @@ export default function AboutPage() {
             </div>
 
             <div className="relative drop-shadow-[0_18px_22px_rgb(71_19_28/0.3)]" data-receipt>
-              <div className="receipt bg-[#f4f1ea] px-8 py-10 font-mono text-cola">
-                <p className="text-center text-xl font-bold">Order!</p>
-                <p className="text-center text-sm tracking-widest">CONFIRM AT THE COUNTER</p>
-
-                <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5">
-                  {orderRows.map(([k, v]) => (
-                    <div key={k} className="contents">
-                      <dt>{k} :</dt>
-                      <dd className={v ? "font-bold" : "text-cola/40"}>{blank(v)}</dd>
-                    </div>
-                  ))}
-                </dl>
-
-                <p className="mt-6 font-bold underline underline-offset-4">Notes</p>
-                <ul className="mt-1 list-inside list-disc text-sm">
-                  {(o.notes.length ? o.notes : [null, null]).map((n, i) => (
-                    <li key={i} className={n ? "" : "text-cola/40"}>
-                      {blank(n)}
-                    </li>
-                  ))}
-                </ul>
-
-                <p className="mt-6 text-center text-sm font-bold">
-                  Don&rsquo;t forget to tag the cafe
-                  <br />
-                  Thanks for your order
-                </p>
-                <Barcode seed="naksh-go-to-order" className="mt-4 h-12 w-full" />
-              </div>
+              <OrderReceipt name={CREATOR.nickname} order={GO_TO_ORDER} seed="naksh-go-to-order" />
             </div>
           </div>
         </div>

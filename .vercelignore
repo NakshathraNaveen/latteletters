@@ -1,0 +1,8 @@
+# never upload secrets or local build output with `vercel deploy`
+.env*
+.vercel
+.next
+node_modules
+*.tsbuildinfo
+public/maplibre
+inspo

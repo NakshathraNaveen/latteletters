@@ -5,12 +5,11 @@ import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import { CREW_EMOJI, CREW_ID, CREW_LIMITS, INVITE_CODE, crewMembers, membership, newInviteCode } from "@/lib/crews";
 import { isProfane } from "@/lib/moderation";
-import { cafeById } from "@/lib/osm";
+import { CAFE_ID, cafeById } from "@/lib/cafes";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type CrewState = { error?: string; ok?: string; at?: number };
 
-const CAFE_ID = /^(node|way|relation)-\d{1,15}$/;
 const USERNAME = /^[a-z0-9_]{3,20}$/;
 const SWEET = "Let's keep it sweet! Please reword that.";
 const SPILLED = "Something spilled. Please try again.";
@@ -195,7 +194,7 @@ export async function addCafeToCrew(crewId: string, cafeId: string, rawNote: str
   const { count } = await db().from("crew_cafes").select("cafe_id", { count: "exact", head: true }).eq("crew_id", crewId);
   if ((count ?? 0) >= CREW_LIMITS.cafesPerCrew) return { error: `This crew's list is full (${CREW_LIMITS.cafesPerCrew} cafes).` };
 
-  // the snapshot comes from OpenStreetMap (cached), never from the browser
+  // the snapshot comes from the map (cached), never from the browser
   const cafe = await cafeById(cafeId).catch(() => null);
   if (!cafe) return { error: "Couldn't find this cafe on the map right now. Try again in a moment." };
   const place = [cafe.neighbourhood, cafe.city].filter(Boolean).join(", ") || cafe.country || null;

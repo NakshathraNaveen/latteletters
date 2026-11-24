@@ -48,3 +48,9 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# copied from node_modules by scripts/copy-maplibre-worker.mjs
+/public/maplibre/
+
+# Overture importer deps
+/scripts/overture/node_modules/

@@ -17,7 +17,7 @@ import { MOOD_PLAYLISTS } from "@/data/playlists";
 import { moodPlaylist } from "@/lib/spotify";
 import { getCurrentUser } from "@/lib/auth";
 import { savedIdsSafe } from "@/lib/saved";
-import { cafesNear, distanceKm, geocode, roundCoord } from "@/lib/osm";
+import { cafesNear, distanceKm, geocode, roundCoord } from "@/lib/cafes";
 import { DEFAULT_RADIUS, POPULAR_PLACES, RADII } from "@/lib/places";
 import { cafeStatsSafe, type CafeStats } from "@/lib/posts";
 import { interpret, rankCafes, suggest, type ScoredCafe } from "@/lib/search";
@@ -286,8 +286,20 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
           ) : (
             <EmptyState q={q} base={{ ...base, r }} suggestions={suggest(q)} widerHref={r !== "8" ? buildHref({ ...base, r: "8" }) : undefined} />
           )}
-          <p className="mt-8 text-right text-xs text-cola/70">
-            Cafe data ©{" "}
+          <p className="mt-8 text-center font-hand text-xl">
+            missing a cafe?{" "}
+            <Link href="/add-cafe" className="underline underline-offset-4">
+              add it to latteletters
+            </Link>{" "}
+            · or{" "}
+            <Link href="/find" className="underline underline-offset-4">
+              find one by name
+            </Link>
+          </p>
+          <p className="mt-4 text-right text-xs text-cola/70">
+            Cafe data from the{" "}
+            <a href="https://docs.overturemaps.org/attribution/" className="underline" target="_blank" rel="noopener noreferrer">Overture Maps Foundation</a>{" "}
+            (CDLA-Permissive-2.0) and ©{" "}
             <a href="https://www.openstreetmap.org/copyright" className="underline" target="_blank" rel="noopener noreferrer">
               OpenStreetMap contributors
             </a>
@@ -357,7 +369,7 @@ function ErrorState({ q, where }: { q: string; where: string }) {
     <div className="flex flex-col items-center py-16 text-center">
       <DrinkCup drink="cold-brew" className="h-36 w-auto rotate-12" />
       <h1 className="mt-4 font-display text-4xl">the cafe map is a little busy</h1>
-      <p className="mt-2 max-w-md">OpenStreetMap didn&rsquo;t answer in time. Give it a few seconds and try again.</p>
+      <p className="mt-2 max-w-md">The map didn&rsquo;t answer in time. Give it a few seconds and try again.</p>
       <Link
         href={buildHref({ q, where })}
         className="mt-6 rounded-full border-2 border-cola bg-hotpink px-6 py-2 font-display shadow-[3px_3px_0_var(--color-cola)]"
@@ -393,6 +405,9 @@ function EmptyState({
           look up to 8 km away →
         </Link>
       )}
+      <Link href="/add-cafe" className="mt-2 font-hand text-2xl underline underline-offset-4">
+        know one here? add it ✦
+      </Link>
       <ul className="mt-5 flex flex-wrap justify-center gap-2">
         {suggestions.map((d) => (
           <li key={d}>

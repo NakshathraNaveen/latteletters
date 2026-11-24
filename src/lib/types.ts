@@ -9,12 +9,16 @@ export type Social = {
 };
 
 /**
- * A real cafe, built from OpenStreetMap data (© OpenStreetMap contributors).
- * OSM has no menus, prices or photos, so those aren't part of the model.
+ * A real cafe: from Overture Maps, OpenStreetMap (© OpenStreetMap
+ * contributors), or added by someone on latteletters.
+ * Neither has menus, prices or photos, so those aren't part of the model.
  */
 export type Cafe = {
-  /** URL-safe OSM reference, e.g. "node-123456" */
+  /** URL-safe id: Overture "o-<uuid>", OSM "node-123456", or community "c-<uuid>" */
   id: string;
+  source: "overture" | "osm" | "community";
+  /** community cafes: who added it (null once their account is deleted) */
+  addedBy?: string | null;
   name: string;
   /** best-effort street address, e.g. "334 Dundas Street West" */
   street: string | null;

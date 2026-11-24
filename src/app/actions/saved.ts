@@ -1,11 +1,10 @@
 "use server";
 
 import { requireProfile } from "@/lib/auth";
-import { cafeById } from "@/lib/osm";
+import { CAFE_ID, cafeById } from "@/lib/cafes";
 import { MAX_SAVED } from "@/lib/saved";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-const CAFE_ID = /^(node|way|relation)-\d{1,15}$/;
 
 export type SaveState = { saved: boolean; error?: string };
 
@@ -23,7 +22,7 @@ export async function setSaved(cafeId: string, save: boolean): Promise<SaveState
   const { count } = await supabaseAdmin().from("saved_cafes").select("cafe_id", { count: "exact", head: true }).eq("user_id", user.id);
   if ((count ?? 0) >= MAX_SAVED) return { saved: false, error: `Your list is full (${MAX_SAVED} cafes). Unsave a few first.` };
 
-  // the snapshot comes from OpenStreetMap (cached), never from the browser
+  // the snapshot comes from the map (cached), never from the browser
   const cafe = await cafeById(cafeId).catch(() => null);
   if (!cafe) return { saved: false, error: "Couldn't find this cafe on the map right now. Try again in a moment." };
   const place = [cafe.neighbourhood, cafe.city].filter(Boolean).join(", ") || cafe.country || null;

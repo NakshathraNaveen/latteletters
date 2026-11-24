@@ -2,6 +2,9 @@
  * Live cafe data from OpenStreetMap via the Nominatim API.
  * Data © OpenStreetMap contributors, available under the ODbL.
  *
+ * Used for geocoding ("tokyo" → a point), single-cafe lookups, and area
+ * searches in countries we haven't loaded from Overture yet (see overture.ts).
+ *
  * Nominatim usage policy (https://operations.osmfoundation.org/policies/nominatim/):
  *  - identify the app with a User-Agent        → USER_AGENT below
  *  - max 1 request per second                  → throttle() below
@@ -15,10 +18,10 @@ import { cacheLife } from "next/cache";
 import type { Cafe, Place, Social } from "./types";
 import { inferTags } from "./vibes";
 
-const BASE = "https://nominatim.openstreetmap.org";
-const USER_AGENT = "latteletters/0.2 (personal cafe-finder project)";
+const NOMINATIM = "https://nominatim.openstreetmap.org";
+const USER_AGENT = "latteletters/0.3 (cafe finder; https://latteletters.vercel.app)";
 
-/* ───────────── politeness: one request per second, per server instance ───────────── */
+/* ───────────── Nominatim: one request per second, per server instance ───────────── */
 
 let queue: Promise<unknown> = Promise.resolve();
 let lastRequest = 0;
@@ -35,7 +38,7 @@ function throttle<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 async function nominatim<T>(path: string, params: Record<string, string>): Promise<T> {
-  const url = `${BASE}${path}?${new URLSearchParams({ format: "jsonv2", ...params })}`;
+  const url = `${NOMINATIM}${path}?${new URLSearchParams({ format: "jsonv2", ...params })}`;
   const res = await throttle(() =>
     fetch(url, {
       headers: { "User-Agent": USER_AGENT, "Accept-Language": "en" },
@@ -46,25 +49,11 @@ async function nominatim<T>(path: string, params: Record<string, string>): Promi
   return res.json() as Promise<T>;
 }
 
-/* ───────────── raw response shape (only the fields we use) ───────────── */
-
-type RawPlace = {
-  place_id: number;
-  osm_type: "node" | "way" | "relation";
-  osm_id: number;
-  lat: string;
-  lon: string;
-  name?: string;
-  display_name: string;
-  address?: Record<string, string>;
-  extratags?: Record<string, string> | null;
-};
-
 /* ───────────── mapping helpers ───────────── */
 
 const ACCENTS: Cafe["accent"][] = ["hotpink", "lavender", "olive", "lime", "lemon"];
 
-function safeUrl(raw: string | undefined): string | null {
+export function safeUrl(raw: string | undefined): string | null {
   if (!raw) return null;
   const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
   try {
@@ -75,7 +64,7 @@ function safeUrl(raw: string | undefined): string | null {
   }
 }
 
-function social(platform: Social["platform"], raw: string | undefined, base: string): Social | null {
+export function social(platform: Social["platform"], raw: string | undefined, base: string): Social | null {
   if (!raw) return null;
   const value = raw.trim();
   if (/^https?:\/\//i.test(value) || value.includes(".com/")) {
@@ -89,13 +78,26 @@ function social(platform: Social["platform"], raw: string | undefined, base: str
   return { platform, url: `${base}${handle}`, handle: `@${handle}` };
 }
 
-function toCafe(p: RawPlace): Cafe | null {
-  const t = p.extratags ?? {};
-  const a = p.address ?? {};
-  const name = p.name || a.amenity || a.cafe;
-  if (!name) return null; // unnamed cafes aren't useful to browse
+/** One OSM object, whichever API it came from. */
+type OsmPlace = {
+  type: "node" | "way" | "relation";
+  id: number;
+  lat: number;
+  lng: number;
+  name?: string;
+  tags: Record<string, string>;
+  /** Nominatim's computed address (falls back to the object's own addr:* tags) */
+  address?: Record<string, string>;
+};
 
-  const id = `${p.osm_type}-${p.osm_id}`;
+function toCafe(p: OsmPlace): Cafe | null {
+  const t = p.tags;
+  const a = p.address ?? {};
+  const name = p.name || t.name || a.amenity || a.cafe || a.shop;
+  if (!name || !Number.isFinite(p.lat) || !Number.isFinite(p.lng)) return null; // unnamed cafes aren't useful to browse
+
+  const road = a.road || t["addr:street"];
+  const number = a.house_number || t["addr:housenumber"];
   const website = safeUrl(t.website || t["contact:website"] || t.url);
   const socials = [
     social("instagram", t["contact:instagram"] || t.instagram, "https://www.instagram.com/"),
@@ -104,29 +106,50 @@ function toCafe(p: RawPlace): Cafe | null {
     website ? ({ platform: "website", url: website, handle: new URL(website).hostname.replace(/^www\./, "") } as Social) : null,
   ].filter((s): s is Social => s !== null);
 
+  // tea and boba shops often only say so in `shop`, not `cuisine`
+  const cuisine = (t.cuisine || "").split(";").map((s) => s.trim()).filter(Boolean);
+  if (t.shop === "tea" && !cuisine.includes("tea")) cuisine.push("tea");
+  if (t.shop === "bubble_tea" && !cuisine.includes("bubble_tea")) cuisine.push("bubble_tea");
+
   const cafe: Cafe = {
-    id,
+    id: `${p.type}-${p.id}`,
+    source: "osm",
     name,
-    street: a.road ? [a.house_number, a.road].filter(Boolean).join(" ") : null,
-    neighbourhood: a.neighbourhood || a.suburb || a.quarter || null,
-    city: a.city || a.town || a.village || a.municipality || null,
+    street: road ? [number, road].filter(Boolean).join(" ") : null,
+    neighbourhood: a.neighbourhood || a.suburb || a.quarter || t["addr:suburb"] || null,
+    city: a.city || a.town || a.village || a.municipality || t["addr:city"] || null,
     country: a.country || null,
-    lat: Number(p.lat),
-    lng: Number(p.lon),
+    lat: p.lat,
+    lng: p.lng,
     hours: t.opening_hours || null,
     brand: t.brand || null,
-    cuisine: (t.cuisine || "").split(";").map((s) => s.trim()).filter(Boolean),
+    cuisine,
     wifi: ["wlan", "yes", "wifi", "free"].includes(t.internet_access || "") || t["internet_access:fee"] === "no",
     outdoorSeating: t.outdoor_seating === "yes",
     vegan: ["yes", "only", "limited"].includes(t["diet:vegan"] || ""),
     wheelchair: t.wheelchair === "yes",
     socials,
     tags: [],
-    accent: ACCENTS[p.osm_id % ACCENTS.length],
+    accent: ACCENTS[p.id % ACCENTS.length],
   };
   cafe.tags = inferTags(cafe);
   return cafe;
 }
+
+type NominatimPlace = {
+  place_id: number;
+  osm_type: "node" | "way" | "relation";
+  osm_id: number;
+  lat: string;
+  lon: string;
+  name?: string;
+  display_name: string;
+  address?: Record<string, string>;
+  extratags?: Record<string, string> | null;
+};
+
+const fromNominatim = (p: NominatimPlace): Cafe | null =>
+  toCafe({ type: p.osm_type, id: p.osm_id, lat: Number(p.lat), lng: Number(p.lon), name: p.name, tags: p.extratags ?? {}, address: p.address });
 
 /* ───────────── public API (all cached) ───────────── */
 
@@ -134,7 +157,7 @@ function toCafe(p: RawPlace): Cafe | null {
 export async function geocode(query: string): Promise<Place | null> {
   "use cache";
   cacheLife("weeks");
-  const [hit] = await nominatim<RawPlace[]>("/search", { q: query, limit: "1", addressdetails: "1" });
+  const [hit] = await nominatim<NominatimPlace[]>("/search", { q: query, limit: "1", addressdetails: "1" });
   if (!hit) return null;
   const a = hit.address ?? {};
   const name = hit.name || query;
@@ -142,39 +165,64 @@ export async function geocode(query: string): Promise<Place | null> {
   return { name, label: country ? `${name}, ${country}` : name, lat: Number(hit.lat), lng: Number(hit.lon) };
 }
 
+export type Address = { street: string | null; neighbourhood: string | null; city: string | null; country: string | null };
+
+/** The address at a point, for cafes people add themselves. */
+export async function reverseGeocode(lat: number, lng: number): Promise<Address | null> {
+  "use cache";
+  cacheLife("weeks");
+  const hit = await nominatim<NominatimPlace & { error?: string }>("/reverse", {
+    lat: String(lat),
+    lon: String(lng),
+    zoom: "18",
+    addressdetails: "1",
+  });
+  if (!hit || hit.error) return null;
+  const a = hit.address ?? {};
+  return {
+    street: a.road ? [a.house_number, a.road].filter(Boolean).join(" ") : null,
+    neighbourhood: a.neighbourhood || a.suburb || a.quarter || null,
+    city: a.city || a.town || a.village || a.municipality || null,
+    country: a.country || null,
+  };
+}
+
 /**
- * Cafes inside a box around a point. Nominatim returns at most 50 per call,
- * so wider searches fetch a second page.
+ * Nominatim returns at most 50 per call, so keep paging (excluding what we
+ * already have) until a page comes back short: up to 2 pages for 1 km, 3 for
+ * 3 km and 4 for 8 km, at one request a second.
  */
 export async function cafesNear(lat: number, lng: number, radiusKm: number): Promise<Cafe[]> {
   "use cache";
   cacheLife("days");
-
   const dLat = radiusKm / 111;
   const dLng = radiusKm / (111 * Math.max(0.2, Math.cos((lat * Math.PI) / 180)));
   const viewbox = [lng - dLng, lat + dLat, lng + dLng, lat - dLat].map((n) => n.toFixed(5)).join(",");
   const base = { amenity: "cafe", limit: "50", extratags: "1", addressdetails: "1", bounded: "1", viewbox };
 
-  const page1 = await nominatim<RawPlace[]>("/search", base);
-  let all = page1;
-  if (radiusKm > 1 && page1.length === 50) {
-    const page2 = await nominatim<RawPlace[]>("/search", { ...base, exclude_place_ids: page1.map((p) => p.place_id).join(",") });
-    all = [...page1, ...page2];
+  const maxPages = radiusKm <= 1 ? 2 : radiusKm <= 3 ? 3 : 4;
+  const all: NominatimPlace[] = [];
+  for (let page = 0; page < maxPages; page++) {
+    const params = all.length ? { ...base, exclude_place_ids: all.map((p) => p.place_id).join(",") } : base;
+    const batch = await nominatim<NominatimPlace[]>("/search", params);
+    all.push(...batch);
+    if (batch.length < 50) break;
   }
-  return dedupeCafes(all.map(toCafe).filter((c): c is Cafe => c !== null));
+  return dedupeCafes(
+    all.map(fromNominatim).filter((c): c is Cafe => c !== null && distanceKm(lat, lng, c.lat, c.lng) <= radiusKm * 1.05),
+  );
 }
 
 /** How much a listing tells us, so the fuller copy of a duplicate wins. */
 const richness = (c: Cafe) =>
   (c.hours ? 2 : 0) + (c.street ? 1 : 0) + c.socials.length + c.cuisine.length + (c.brand ? 1 : 0);
 
-const sameName = (n: string) => n.toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}]+/gu, "");
+export const sameName = (n: string) => n.toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}]+/gu, "");
 
 /**
- * Nominatim sometimes returns the same place twice (across pages), and OSM
- * often has one cafe mapped twice (a pin plus the building, or two pins a few
- * doors apart). Drop repeats: same id, or same name within ~80 m. Real chain
- * branches further apart stay.
+ * OSM often has one cafe mapped twice (a pin plus the building, or two pins
+ * a few doors apart). Drop repeats: same id, or same name within ~80 m.
+ * Real chain branches further apart stay.
  */
 export function dedupeCafes(cafes: Cafe[]): Cafe[] {
   const kept: Cafe[] = [];
@@ -190,15 +238,15 @@ export function dedupeCafes(cafes: Cafe[]): Cafe[] {
   return kept;
 }
 
-/** One cafe by its URL id, e.g. "node-123456". */
-export async function cafeById(id: string): Promise<Cafe | null> {
+/** One OSM cafe by its URL id, e.g. "node-123456". */
+export async function osmCafeById(id: string): Promise<Cafe | null> {
   "use cache";
   cacheLife("days");
   const m = /^(node|way|relation)-(\d+)$/.exec(id);
   if (!m) return null;
   const osmId = `${m[1][0].toUpperCase()}${m[2]}`;
-  const [hit] = await nominatim<RawPlace[]>("/lookup", { osm_ids: osmId, extratags: "1", addressdetails: "1" });
-  return hit ? toCafe(hit) : null;
+  const [hit] = await nominatim<NominatimPlace[]>("/lookup", { osm_ids: osmId, extratags: "1", addressdetails: "1" });
+  return hit ? fromNominatim(hit) : null;
 }
 
 /* ───────────── geometry ───────────── */

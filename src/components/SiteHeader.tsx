@@ -52,6 +52,12 @@ export function SiteHeader() {
               </Link>
             </li>
             <li>
+              <Link href="/find" className="underline-offset-4 hover:underline">
+                <span className="sm:hidden">review</span>
+                <span className="hidden sm:inline">review a cafe</span>
+              </Link>
+            </li>
+            <li>
               <Link href="/#how" className="underline-offset-4 hover:underline">
                 how it works
               </Link>

@@ -46,7 +46,7 @@ export function SiteFooter() {
           <p>
             Made with oat milk &amp; love in Waterloo Region, Canada.{" "}
             <span className="text-cotton/75">
-              Cafe data © <a href="https://www.openstreetmap.org/copyright" className="underline" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>.
+              Cafe data from the <a href="https://docs.overturemaps.org/attribution/" className="underline" target="_blank" rel="noopener noreferrer">Overture Maps Foundation</a> and © <a href="https://www.openstreetmap.org/copyright" className="underline" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>.
             </span>
           </p>
           <p>
@@ -60,6 +60,15 @@ export function SiteFooter() {
           </p>
         </div>
         <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+          <a href="/people" className="underline underline-offset-4">
+            Find people
+          </a>
+          <a href="/find" className="underline underline-offset-4">
+            Review a cafe
+          </a>
+          <a href="/add-cafe" className="underline underline-offset-4">
+            Add a cafe
+          </a>
           <a href="/privacy" className="underline underline-offset-4">
             Privacy
           </a>

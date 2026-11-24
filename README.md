@@ -10,16 +10,21 @@ Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me
 
 ## Features
 
-- **Works worldwide**: live cafe data from OpenStreetMap. Type any city or neighbourhood, or use your location (rounded to ~110 m, never stored).
+- **Works worldwide, small cafes included**: ~1.5 million cafes, coffee shops, boba shops and tea rooms from [Overture Maps](https://overturemaps.org), loaded into our own database (about 8× more cafes than OpenStreetMap alone in downtown Toronto). Countries not loaded yet fall back to live OpenStreetMap data. Type any city or neighbourhood, or use your location (rounded to ~110 m, never stored).
+- **Review a cafe you visited** (`/find`): search any cafe by name as you type (Overture + OpenStreetMap via Photon, de-duplicated), then leave a review. No need to browse for it first.
+- **Add a missing cafe** (`/add-cafe`): if a spot isn't on the map, add it with a name, kind and a pin you drag into place, then write the first review. Community cafes show up in search results for everyone and stay for good, even if the account that added them is deleted. Duplicate check, profanity filter, 5 a day per person, and 3 reports hide one until an admin looks.
 - **Drink search with an alias dictionary**: viral names, nicknames and misspellings resolve to the right drink (`whipped coffee` → dalgona, `capuccino` → cappuccino, `boba` → bubble tea).
 - **Mood and vibe search**: phrases like `late night` or `cozy study` map to vibe tags inferred from real map data (wifi, outdoor seating, opening hours, independent vs chain, Instagram, cuisine).
 - **"Why this matched"** on every result ("has wifi", "open late", "tea spot"), plus a friendly empty state.
 - **Folder-tab distance picker**: walkable (1 km), short ride (3 km), worth the trip (8 km).
-- **Sort, filter and map**: sort by best match, closest or top rated. Filter to open now (OSM opening hours parsed in each cafe's own time zone), vegan options, wifi, outdoor seating or independent, with live counts on each chip. Flip to a Leaflet map with cup-shaped pins that group into numbered bubbles in busy areas (leaflet.markercluster). All of it lives in the URL, so results are shareable and work without JS.
+- **Sort, filter and map**: sort by best match, closest or top rated. Filter to open now (OSM opening hours parsed in each cafe's own time zone), vegan options, wifi, outdoor seating or independent, with live counts on each chip. Flip to a MapLibre map (OpenFreeMap tiles, recoloured to the site's pinks) with cup-shaped pins that group into numbered bubbles in busy areas. All of it lives in the URL, so results are shareable and work without JS.
 - **Ratings on cards**: cafe cards show their average stars and love-note count, cached per cafe and refreshed the moment someone posts.
-- **Cafe pages**: ID card with address and opening hours, amenities, social links with click tracking, an OpenStreetMap embed, directions, and an "edit on OpenStreetMap" link for corrections.
+- **Cafe pages**: ID card with address and opening hours, amenities, social links with click tracking, a pink map, directions, and an "edit on OpenStreetMap" link for corrections.
 - **Accounts (passwordless)**: log in with an emailed one-time link, then pick a username and design a cup avatar (cup style incl. kulhad and cutting chai glass, drink, colour and pattern). Public profiles live at `/u/<username>` with a "regular" badge. "Delete my account" removes every post and photo.
 - **Reviews & love notes**: a star rating, the drink you ordered, vibe tags and up to 3 photos, or a short sticky-note "love note". You can edit and delete your own, and they appear instantly thanks to tag-based cache invalidation.
+- **Go-to order**: everyone can fill in a go-to order receipt (drink, size, milk, sweetness, temp, extras, notes) in settings, with a live preview. It shows on their profile, the same receipt as the creator page.
+- **Cafe lists**: make as many lists as you like ("best study spots in Toronto"), each cafe with what to order and a note. Lists are private unless you make them public; public lists show on your profile, and cafe pages show what people on public lists order there.
+- **Find people** (`/people`): search by username.
 - **Saved cafes**: tap ♡ on any cafe card or cafe page to keep it on a private shelf on your profile. Saves live in a table with RLS on and no policies, so only the server can read them, and they're deleted with your account.
 - **Cafe crews**: private friend groups with a shared cafe list. Join with an invite link or an add-by-username invite (accept or decline), add cafes from any cafe page with a short note, and heart each other's picks. Crew tables have RLS on with no policies, and every server read checks membership first; non-members get a 404.
 - **Music**: add a Spotify song, album or playlist to any review or love note ("what was playing?"). Each mood can have its own playlist (set in `src/data/playlists.ts`), shown in its home-page folder and on mood searches. Links are checked with Spotify's public oEmbed (no API key). The official player only loads when someone presses play, so pages stay fast and Spotify cookies aren't set until then.
@@ -41,17 +46,17 @@ Type `matcha in tokyo`, `boba` + Toronto, or `cozy study spot` and tap **near me
 | Framework | Next.js 16 (App Router, Cache Components, Turbopack) + React 19 + TypeScript |
 | Styling | Tailwind CSS v4 with design tokens in `globals.css`; custom display fonts via `next/font/local` |
 | Motion | GSAP + ScrollTrigger |
-| Data | OpenStreetMap via the Nominatim API, cached with `use cache` |
+| Data | Overture Maps places in Supabase (main cafe source, loaded by `scripts/overture/import.mjs`), OpenStreetMap via Nominatim (geocoding, lookups, fallback) and Photon (search by name). All free, cached with `use cache` |
 | Accounts & reviews | Supabase (Postgres with row level security, Auth magic links, Storage) |
 | Site images | Vercel Blob |
-| Maps | Leaflet + OpenStreetMap tiles for the results map, OSM embed on cafe pages (free, no API key) |
+| Maps | MapLibre GL JS + OpenFreeMap vector tiles (free, no API key). The web worker is copied into `public/maplibre/` by `scripts/copy-maplibre-worker.mjs` before dev and build |
 | Hosting | Vercel |
 
 ## How search works
 
 1. **Understand the query** (`src/lib/search.ts`): greedy longest-phrase matching against drink aliases and vibe synonyms, then Levenshtein fuzzy matching for typos and prefix matching for half-typed words. Words after "in"/"near", or any it can't place, become the location (`matcha in tokyo`).
 2. **Find the place**: Nominatim geocodes the city, or the browser's rounded location is used.
-3. **Fetch real cafes** (`src/lib/osm.ts`): Nominatim `amenity=cafe` search inside a box around the point. Results are cached for a day, requests are throttled to 1 per second per the usage policy, and failures are never cached.
+3. **Fetch real cafes** (`src/lib/cafes.ts`): the nearest Overture cafes from our database (`overture_cafes_near`), plus community cafes. Where Overture has none (a country not loaded yet), it pages through Nominatim instead, at 1 request a second. Results are cached for a day, and failures are never cached.
 4. **Infer vibes** (`src/lib/vibes.ts`): each mood is a transparent rule over real tags. For example, `study` means wifi or a bookish name, and `late-night` means it closes after 9pm.
 5. **Rank**: drink fit (a name match beats the cuisine type, which beats "coffee shop"), plus vibe matches and a small boost for independent cafes. Ties are broken by distance.
 
@@ -97,14 +102,25 @@ npm run build      # production build
 npm run lint
 ```
 
+## Refreshing the cafe data
+
+Overture publishes a new release every month. To refresh (takes ~10 minutes, mostly downloading):
+
+```bash
+cd scripts/overture && npm install
+npm run import -- --all            # or --countries CA,US
+```
+
+It upserts country by country, removes cafes that closed or disappeared, and stops before the database reaches `--max-db-mb` (default 460, under the free Supabase plan's 500 MB) so the site never goes read-only.
+
 ## Data & corrections
 
-Cafe data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the ODbL. Anyone can fix a listing (hours, Instagram, closed cafes) on OpenStreetMap, and latteletters picks up the change within a day.
+Cafe data from the [Overture Maps Foundation](https://docs.overturemaps.org/attribution/) (CDLA-Permissive-2.0; sources include Meta, Microsoft, Foursquare under Apache-2.0, and AllThePlaces under CC0) and © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the ODbL. Anyone can fix a listing (hours, Instagram, closed cafes) on OpenStreetMap, and latteletters picks up the change within a day.
 
 ## Roadmap
 
 - **Phase 2**: ✓ accounts, reviews and love notes with photos, moderation. ✓ map view, sorting, filters (open now, vegan, wifi…), ratings on cards.
-- **Phase 3**: weighted vibe search using review text, saved cafes ("coffee passport"), a cafe-owner claim flow.
+- **Phase 3**: ✓ saved cafes, ✓ review a cafe by name, ✓ community-added cafes. Still to come: weighted vibe search using review text, a cafe-owner claim flow.
 
 ---
 

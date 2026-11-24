@@ -66,7 +66,7 @@ export default function PrivacyPage() {
       <h2 className={h2}>where it lives</h2>
       <p className="mt-3">
         Accounts, posts and photos are stored with Supabase, and the site runs on Vercel. Both use servers in the United States, so
-        your information may be processed there. Cafe details come from OpenStreetMap.
+        your information may be processed there. Cafe details come from Overture Maps and OpenStreetMap, plus cafes people add themselves.
       </p>
       <p className="mt-3">
         Songs and playlists are played by Spotify&rsquo;s own player. It only loads when you press play, and from then on

@@ -1,0 +1,13 @@
+{
+  "name": "latteletters-overture-import",
+  "private": true,
+  "type": "module",
+  "description": "Imports cafes from Overture Maps into Supabase. Kept separate so the website's install stays small.",
+  "scripts": {
+    "import": "node --env-file=../../.env.local import.mjs"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "1.5.6-r.2",
+    "pg": "8.23.1"
+  }
+}

@@ -13,6 +13,9 @@ import { SaveButton } from "@/components/SaveButton";
 import { getCurrentUser, getViewer } from "@/lib/auth";
 import { savedCafes, type SavedCafe } from "@/lib/saved";
 import { profileWithPosts } from "@/lib/posts";
+import { goToOrder } from "@/lib/orders";
+import { myLists, publicListsOf, type ListSummary } from "@/lib/lists";
+import { OrderReceipt } from "@/components/OrderReceipt";
 
 const USERNAME = /^[a-z0-9_]{3,20}$/;
 
@@ -72,6 +75,14 @@ async function Profile({ params }: { params: PageProps<"/u/[username]">["params"
           </Sticker>
         )}
       </div>
+
+      <Suspense fallback={null}>
+        <GoToOrder userId={profile.id} username={profile.username} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <Lists userId={profile.id} username={profile.username} />
+      </Suspense>
 
       <Suspense fallback={null}>
         <SavedShelf username={profile.username} />
@@ -136,6 +147,87 @@ async function SavedShelf({ username }: { username: string }) {
                 </div>
               </div>
               <SaveButton cafeId={c.cafeId} cafeName={c.name} saved className="absolute -right-2 -top-2 z-10" />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** Their go-to order receipt, or (on your own profile) a nudge to write one. */
+async function GoToOrder({ userId, username }: { userId: string; username: string }) {
+  const order = await goToOrder(userId).catch(() => null);
+  const viewer = order ? null : await getCurrentUser().catch(() => null);
+  if (!order) {
+    if (viewer?.profile?.username !== username) return null;
+    return (
+      <p className="mx-auto mt-12 max-w-md rounded-2xl border-2 border-dashed border-cola/60 bg-lemon/70 p-5 text-center font-hand text-2xl">
+        what&rsquo;s your usual?{" "}
+        <Link href="/settings#order" className="underline underline-offset-4">
+          add your go-to order →
+        </Link>
+      </p>
+    );
+  }
+  return (
+    <section aria-labelledby="order-title" className="mx-auto mt-16 max-w-md">
+      <h2 id="order-title" className="text-center font-serif text-[clamp(2.25rem,6vw,3.5rem)] leading-none">
+        @{username}&rsquo;s go-to order
+      </h2>
+      <p className="mt-3 text-center font-display text-lg">the usual, please ✦</p>
+      <div className="mt-8 -rotate-1 drop-shadow-[0_18px_22px_rgb(71_19_28/0.3)]">
+        <OrderReceipt name={`@${username}`} order={order} seed={`order-${username}`} />
+      </div>
+    </section>
+  );
+}
+
+/** Their public cafe lists. On your own profile, your private ones show too (with a lock). */
+async function Lists({ userId, username }: { userId: string; username: string }) {
+  const viewer = await getCurrentUser().catch(() => null);
+  const own = viewer?.id === userId;
+  let lists: ListSummary[];
+  try {
+    lists = own ? await myLists(userId) : await publicListsOf(userId);
+  } catch {
+    return null;
+  }
+  if (!lists.length && !own) return null;
+  return (
+    <section aria-labelledby="lists-title" className="mt-16">
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
+        <h2 id="lists-title" className="font-display text-4xl">
+          {own ? "your lists" : `@${username}’s lists`}
+        </h2>
+        {own && (
+          <Link href="/lists" className="font-hand text-xl underline underline-offset-4">
+            manage &amp; make lists →
+          </Link>
+        )}
+      </div>
+      {lists.length === 0 ? (
+        <p className="mt-3">No lists yet. Tap ☆ add to a list on any cafe page to start one.</p>
+      ) : (
+        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {lists.map((l, i) => (
+            <li key={l.id}>
+              <Link
+                href={`/lists/${l.id}`}
+                className="paper flex h-full items-center gap-4 rounded-2xl border-2 border-cola bg-lemon px-5 py-4 shadow-[3px_3px_0_var(--color-cola)] transition hover:-translate-y-0.5 hover:bg-cotton-deep"
+                style={{ rotate: `${[-0.6, 0.5, -0.3][i % 3]}deg` }}
+              >
+                <span aria-hidden className="text-3xl">
+                  {l.emoji}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate font-display text-xl">{l.title}</span>
+                  <span className="block text-sm">
+                    {l.cafeCount} cafe{l.cafeCount === 1 ? "" : "s"}
+                    {own && (l.isPublic ? " · ✦ public" : " · 🔒 private")}
+                  </span>
+                </span>
+              </Link>
             </li>
           ))}
         </ul>

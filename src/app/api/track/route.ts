@@ -2,8 +2,9 @@
  * Click-through tracking (FR-10). MVP: validate and log, so events show up
  * in Vercel's function logs. Phase 2: insert into a Supabase `events` table.
  */
+import { CAFE_ID } from "@/lib/cafes";
+
 const PLATFORMS = new Set(["instagram", "tiktok", "facebook", "website"]);
-const CAFE_ID = /^(node|way|relation)-\d{1,15}$/;
 
 export async function POST(request: Request) {
   let data: unknown;
