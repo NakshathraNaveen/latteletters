@@ -7,7 +7,7 @@ import { DrinkCup } from "@/components/DrinkCup";
 import { DripLoader } from "@/components/DripLoader";
 import { MenuBoard } from "@/components/MenuBoard";
 import { NotesWall } from "@/components/NotesWall";
-import { SocialLinks } from "@/components/SocialLinks";
+import { InstagramTag, SocialLinks } from "@/components/SocialLinks";
 import { ReportCafeButton } from "@/components/ReportCafeButton";
 import { SpotMap } from "@/components/maps/SpotMap";
 import { AddedBanner } from "@/components/AddedBanner";
@@ -92,6 +92,7 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
   const place = placeLine(cafe);
   const address = [cafe.street, cafe.neighbourhood, cafe.city, cafe.country].filter(Boolean).join(", ");
   const nearbyHref = `/search?lat=${roundCoord(cafe.lat).toFixed(3)}&lng=${roundCoord(cafe.lng).toFixed(3)}&r=1`;
+  const instagram = cafe.socials.find((s) => s.platform === "instagram") ?? null;
   const amenities = [
     cafe.wifi && "📶 wifi",
     cafe.outdoorSeating && "☀️ outdoor seating",
@@ -333,9 +334,27 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
 
       {/* ─────────── reviews + love notes (Phase 2) ─────────── */}
       <section aria-labelledby="notes" className="mt-20 scroll-mt-24 rounded-3xl bg-cola p-6 text-cotton sm:p-8" id="love-notes">
-        <h2 id="notes" className="font-display text-3xl md:text-4xl">
-          love notes for {cafe.name}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+          <h2 id="notes" className="font-display text-3xl md:text-4xl">
+            love notes for {cafe.name}
+          </h2>
+          {instagram ? (
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="font-hand text-xl">visited? tag them</span>
+              <InstagramTag cafeId={cafe.id} social={instagram} />
+            </p>
+          ) : (
+            <p className="font-hand text-xl opacity-80">
+              know their instagram?{" "}
+              <a
+                href={`mailto:latteletters.contact@gmail.com?subject=${encodeURIComponent(`Instagram for ${cafe.name} (${cafe.id})`)}`}
+                className="underline underline-offset-4"
+              >
+                tell us
+              </a>
+            </p>
+          )}
+        </div>
         <Suspense fallback={<p className="mt-4 font-hand text-2xl">unpinning the notes…</p>}>
           <NotesWall cafeId={cafe.id} cafeName={cafe.name} />
         </Suspense>

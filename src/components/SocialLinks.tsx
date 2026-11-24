@@ -44,3 +44,21 @@ export function SocialLinks({ cafeId, socials }: { cafeId: string; socials: Soci
     </ul>
   );
 }
+
+/** The cafe's Instagram on its love-notes wall: "tag them @handle". */
+export function InstagramTag({ cafeId, social }: { cafeId: string; social: Social }) {
+  return (
+    <a
+      href={social.url}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      onClick={() => track(cafeId, "instagram")}
+      className="wiggle inline-flex items-center gap-2 rounded-full border-2 border-cotton bg-hotpink px-4 py-1.5 text-cola shadow-[3px_3px_0_var(--color-cotton)] transition-colors hover:bg-lemon"
+    >
+      <span aria-hidden>📷</span>
+      <span className="font-label text-[10px] uppercase tracking-widest opacity-80">instagram</span>
+      <span className="max-w-[14rem] truncate font-semibold">{social.handle}</span>
+      <span className="sr-only">(opens in a new tab)</span>
+    </a>
+  );
+}
