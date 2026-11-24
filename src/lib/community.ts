@@ -100,7 +100,7 @@ export async function communityCafesNear(lat: number, lng: number, radiusKm: num
   return (data as unknown as Row[]).map(toCafe);
 }
 
-/** Community cafes where every word typed is in the name or the city ("bean there toronto"). */
+/** Community cafes whose name shares a word with the search (ranked later by findCafes). */
 export async function searchCommunityCafes(q: string): Promise<Cafe[]> {
   "use cache";
   cacheTag(COMMUNITY_TAG);
@@ -108,13 +108,14 @@ export async function searchCommunityCafes(q: string): Promise<Cafe[]> {
   const words = q
     .toLowerCase()
     .split(/\s+/)
-    .map((w) => w.replace(/[^\p{L}\p{N}'&-]/gu, "")) // keep PostgREST filter syntax out
-    .filter((w) => w.length >= 2)
-    .slice(0, 4);
+    .map((w) => w.replace(/[^\p{L}\p{N}]/gu, "")) // keep PostgREST filter syntax out
+    .filter((w) => w.length >= 3)
+    .slice(0, 6);
   if (!words.length) return [];
-  let query = supabasePublic().from("community_cafes").select(COLUMNS);
-  for (const w of words) query = query.or(`name.ilike.*${w}*,city.ilike.*${w}*`);
-  const { data, error } = await query.order("created_at", { ascending: false }).limit(8);
+  // any word in the name (the first few letters, so small typos later in the word still match);
+  // findCafes ranks the candidates properly
+  const filters = words.map((w) => `name.ilike.*${w.slice(0, Math.max(3, w.length - 2))}*`).join(",");
+  const { data, error } = await supabasePublic().from("community_cafes").select(COLUMNS).or(filters).order("created_at", { ascending: false }).limit(40);
   if (error) throw new Error(error.message);
   return (data as unknown as Row[]).map(toCafe);
 }

@@ -12,6 +12,10 @@ import { inferTags } from "./vibes";
 
 export const OVERTURE_TAG = "overture-cafes";
 
+/** Give up on a slow database quickly; callers fall back to OpenStreetMap. Errors aren't cached. */
+const TIMEOUT_MS = 5000;
+const limit = () => AbortSignal.timeout(TIMEOUT_MS);
+
 const COLUMNS = "id, name, lat, lng, kind, street, city, country, brand, website, instagram";
 
 export type OvertureRow = {
@@ -104,7 +108,7 @@ export async function overtureCafeById(id: string): Promise<Cafe | null> {
   cacheLife("days");
   const uuid = id.slice(2);
   if (!id.startsWith("o-") || !UUID.test(uuid)) return null;
-  const { data, error } = await supabasePublic().from("overture_cafes").select(COLUMNS).eq("id", uuid).maybeSingle();
+  const { data, error } = await supabasePublic().from("overture_cafes").select(COLUMNS).eq("id", uuid).abortSignal(limit()).maybeSingle();
   if (error) throw new Error(error.message);
   return data ? toCafe(data as OvertureRow) : null;
 }
@@ -114,22 +118,29 @@ export async function overtureCafesNear(lat: number, lng: number, radiusKm: numb
   "use cache";
   cacheTag(OVERTURE_TAG);
   cacheLife("days");
-  const { data, error } = await supabasePublic().rpc("overture_cafes_near", { lat, lng, radius_km: radiusKm, max_results: 800 });
+  const { data, error } = await supabasePublic().rpc("overture_cafes_near", { lat, lng, radius_km: radiusKm, max_results: 800 }).abortSignal(limit());
   if (error) throw new Error(error.message);
   return (data as OvertureRow[]).map(toCafe);
 }
 
-/** Cafes whose name + city contain every word typed (the last as a prefix). */
-export async function searchOvertureCafes(q: string, near: { lat: number; lng: number } | null): Promise<Cafe[]> {
+/**
+ * Candidate cafes for a name search (any distinctive word, joined words split).
+ * typoMode: match on the first three letters of each word instead, for when
+ * every word has a typo. findCafes ranks the candidates (lib/match.ts).
+ */
+export async function searchOvertureCafes(q: string, near: { lat: number; lng: number } | null, typoMode = false): Promise<Cafe[]> {
   "use cache";
   cacheTag(OVERTURE_TAG);
   cacheLife("days");
-  const { data, error } = await supabasePublic().rpc("search_overture_cafes", {
-    q,
-    near_lat: near?.lat ?? null,
-    near_lng: near?.lng ?? null,
-    max_results: 10,
-  });
+  const { data, error } = await supabasePublic()
+    .rpc("search_overture_cafes", {
+      q,
+      near_lat: near?.lat ?? null,
+      near_lng: near?.lng ?? null,
+      max_results: 120,
+      typo_mode: typoMode,
+    })
+    .abortSignal(limit());
   if (error) throw new Error(error.message);
   return (data as OvertureRow[]).map(toCafe);
 }

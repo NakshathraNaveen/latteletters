@@ -13,7 +13,10 @@
  */
 
 import { DRINKS, DRINK_CHIPS, DRINK_FAMILY, DRINK_IDS, DRINK_NAME_WORDS, type DrinkId } from "./drinks";
+import { levenshtein } from "./match";
 import type { Cafe } from "./types";
+
+export { levenshtein };
 import { VIBES, VIBE_IDS, VIBE_RULES, type VibeId } from "./vibes";
 
 export type MatchKind = "exact" | "fuzzy" | "partial";
@@ -53,20 +56,6 @@ const PHRASES: Phrase[] = [
   ...VIBE_IDS.flatMap((id) => VIBES[id].synonyms.map((s) => ({ type: "vibe" as const, id, tokens: tokenize(s) }))),
 ].sort((a, b) => b.tokens.length - a.tokens.length || b.tokens.join(" ").length - a.tokens.join(" ").length);
 
-export function levenshtein(a: string, b: string): number {
-  if (a === b) return 0;
-  if (!a.length) return b.length;
-  if (!b.length) return a.length;
-  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
-  for (let i = 1; i <= a.length; i++) {
-    const cur = [i];
-    for (let j = 1; j <= b.length; j++) {
-      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-    }
-    prev = cur;
-  }
-  return prev[b.length];
-}
 
 const tolerance = (len: number) => (len <= 4 ? 0 : len <= 8 ? 1 : 2);
 

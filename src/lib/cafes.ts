@@ -8,6 +8,7 @@
 import { cacheLife } from "next/cache";
 import { communityCafeById, communityCafesNear, searchCommunityCafes } from "./community";
 import { cafesNear as osmCafesNear, distanceKm, osmCafeById, sameName } from "./osm";
+import { matchScore } from "./match";
 import { overtureCafeById, overtureCafesNear, searchOvertureCafes } from "./overture";
 import type { Cafe } from "./types";
 
@@ -130,9 +131,11 @@ const found = (c: Cafe, kind: string): FoundCafe => ({
 });
 
 /**
- * Cafes matching a name: community first, then Overture, then OpenStreetMap
- * (worldwide, via Photon) for anything Overture doesn't have. The same cafe
- * from two sources shows once, so its reviews don't get split.
+ * Cafes matching a name: community, Overture, and OpenStreetMap (worldwide,
+ * via Photon) for anything Overture doesn't have. Each source finds
+ * candidates generously, then everything is ranked by matchScore, so small
+ * typos and spacing don't matter. The same cafe from two sources shows once,
+ * so its reviews don't get split.
  */
 export async function findCafes(q: string, near: { lat: number; lng: number } | null): Promise<{ cafes: FoundCafe[]; mapFailed: boolean }> {
   const [community, overture, osm] = await Promise.all([
@@ -146,11 +149,26 @@ export async function findCafes(q: string, near: { lat: number; lng: number } | 
       () => ({ ok: false as const, r: [] as FoundCafe[] }),
     ),
   ]);
-  const list: FoundCafe[] = [
-    ...community.map((c) => found(c, "added by the community")),
-    ...overture.r.map((c) => found(c, c.cuisine.includes("bubble_tea") ? "boba" : c.cuisine.includes("tea") ? "tea room" : "cafe")),
-  ];
+  // every word mistyped? try again on the first few letters of each word
+  let fromOverture = overture.r;
+  if (overture.ok && fromOverture.filter((c) => matchScore(q, c.name, [c.street, c.city].filter(Boolean).join(", ")) >= 0.6).length < 3) {
+    const more = await searchOvertureCafes(q, near, true).catch(() => [] as Cafe[]);
+    const seen = new Set(fromOverture.map((c) => c.id));
+    fromOverture = [...fromOverture, ...more.filter((c) => !seen.has(c.id))];
+  }
+  const kindOf = (c: Cafe) => (c.cuisine.includes("bubble_tea") ? "boba" : c.cuisine.includes("tea") ? "tea room" : "cafe");
+  const list: FoundCafe[] = [...community.map((c) => found(c, "added by the community")), ...fromOverture.map((c) => found(c, kindOf(c)))];
   const isDuplicate = (f: FoundCafe) => list.some((k) => sameName(k.name) === sameName(f.name) && distanceKm(k.lat, k.lng, f.lat, f.lng) < 0.15);
   for (const f of osm.r) if (!isDuplicate(f)) list.push(f);
-  return { cafes: list.slice(0, 15), mapFailed: !overture.ok && !osm.ok };
+
+  const sourceOrder = (f: FoundCafe) => (f.community ? 0 : f.id.startsWith("o-") ? 1 : 2);
+  const ranked = list
+    .map((f, i) => ({ f, i, score: matchScore(q, f.name, f.place), km: near ? distanceKm(near.lat, near.lng, f.lat, f.lng) : 0 }))
+    .filter((r) => r.score >= 0.45)
+    .sort(
+      (a, b) =>
+        // a clearly better match wins; close calls go to the nearer cafe, then the source we trust most
+        (Math.abs(b.score - a.score) > 0.08 ? b.score - a.score : 0) || a.km - b.km || sourceOrder(a.f) - sourceOrder(b.f) || a.i - b.i,
+    );
+  return { cafes: ranked.slice(0, 15).map((r) => r.f), mapFailed: !overture.ok && !osm.ok };
 }

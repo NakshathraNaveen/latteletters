@@ -16,6 +16,11 @@
 // database size and stop at --max-db-mb (default 460). Countries are never
 // half-imported; any left out simply keep using OpenStreetMap on the site.
 //
+// Gentle on the database (the free plan's small server struggled with the
+// first full load): rows are written in map order, so an area search reads a
+// few disk pages instead of hundreds; unchanged rows aren't rewritten on a
+// refresh; and there's a pause between batches (--pause-ms, default 250).
+//
 // Licences: CDLA-Permissive-2.0 (Overture, Meta, Microsoft…), Apache-2.0
 // (Foursquare), CC0 (AllThePlaces). The site credits Overture wherever it shows them.
 import { DuckDBInstance } from "@duckdb/node-api";
@@ -36,6 +41,8 @@ if (!all && !only.length) {
   process.exit(1);
 }
 const maxDbBytes = Number(arg("max-db-mb") ?? 460) * 1024 * 1024;
+const pauseMs = Number(arg("pause-ms") ?? 250);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Overture's newest release, from its STAC catalogue. */
 async function latestRelease() {
@@ -104,6 +111,8 @@ const db = new pg.Client({ connectionString: url.toString(), ssl: { rejectUnauth
 await db.connect();
 
 const COLS = ["id", "lat", "lng", "kind", "release_day", "confidence", "country", "name", "street", "city", "brand", "website", "instagram"];
+// everything but release_day: a refresh only rewrites cafes that actually changed
+const DATA_COLS = COLS.filter((c) => c !== "id" && c !== "release_day");
 const BATCH = 2000;
 const dbSize = async () => Number((await db.query("select pg_database_size(current_database()) as b")).rows[0].b);
 
@@ -119,7 +128,7 @@ for (const { cc, n } of byCountry) {
   }
   const filter = cc === "??" ? "country IS NULL" : `country = '${cc}'`;
   for (let offset = 0; offset < n; offset += BATCH) {
-    const chunk = (await duck.runAndReadAll(`SELECT * FROM cafes WHERE ${filter} ORDER BY id LIMIT ${BATCH} OFFSET ${offset}`)).getRowObjectsJson();
+    const chunk = (await duck.runAndReadAll(`SELECT * FROM cafes WHERE ${filter} ORDER BY floor(lat * 10), floor(lng * 10), lat, lng, id LIMIT ${BATCH} OFFSET ${offset}`)).getRowObjectsJson();
     const values = [];
     const params = [];
     for (const r of chunk) {
@@ -129,9 +138,11 @@ for (const { cc, n } of byCountry) {
     }
     await db.query(
       `insert into public.overture_cafes (${COLS.join(",")}) values ${values.join(",")}
-       on conflict (id) do update set ${COLS.filter((c) => c !== "id").map((c) => `${c} = excluded.${c}`).join(", ")}`,
+       on conflict (id) do update set ${COLS.filter((c) => c !== "id").map((c) => `${c} = excluded.${c}`).join(", ")}
+       where (${DATA_COLS.map((c) => `overture_cafes.${c}`).join(",")}) is distinct from (${DATA_COLS.map((c) => `excluded.${c}`).join(",")})`,
       params,
     );
+    if (pauseMs) await sleep(pauseMs);
   }
   imported.push(cc);
   saved += n;
@@ -140,11 +151,17 @@ for (const { cc, n } of byCountry) {
 
 /* ───────────── 3. drop cafes that are gone from Overture ───────────── */
 
+// unchanged rows keep their old release_day, so find the gone ones by id instead
+await duck.run("CREATE TABLE ids AS SELECT id FROM cafes");
 const done = imported.filter((c) => c !== "??");
-const gone = await db.query(
-  `delete from public.overture_cafes where release_day <> $1 and (country = any($2) ${imported.includes("??") ? "or country is null" : ""})`,
+const { rows: stale } = await db.query(
+  `select id from public.overture_cafes where release_day <> $1 and (country = any($2) ${imported.includes("??") ? "or country is null" : ""})`,
   [releaseDay, done],
 );
+const keep = new Set((await duck.runAndReadAll("SELECT id FROM ids")).getRowObjectsJson().map((r) => r.id));
+const goneIds = stale.map((r) => r.id).filter((id) => !keep.has(id));
+for (let i = 0; i < goneIds.length; i += 5000) await db.query("delete from public.overture_cafes where id = any($1::uuid[])", [goneIds.slice(i, i + 5000)]);
+const gone = { rowCount: goneIds.length };
 console.log(`removed ${gone.rowCount} cafes no longer in Overture`);
 if (skipped.length) console.log(`⚠ stopped before the size limit; not imported (they keep using OpenStreetMap): ${skipped.join(", ")}`);
 
