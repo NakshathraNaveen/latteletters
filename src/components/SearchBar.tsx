@@ -2,10 +2,12 @@
  * Search bar (FR-1). A plain GET form to /search, so it works before JS
  * loads and gives shareable URLs like /search?q=matcha&where=Tokyo.
  *
- *  - hero:    "what" + "where" boxes + near-me button
+ *  - hero:    "what" + "where" boxes + near-me button; the "what" box also
+ *             suggests cafes by name as you type (HeroQueryInput)
  *  - compact: one box for the header ("matcha in tokyo" works too)
  *  - place:   "anywhere else?" city box under the passport stamps
  */
+import { HeroQueryInput } from "./HeroQueryInput";
 import { NearMeButton } from "./NearMeButton";
 
 const SearchIcon = ({ className }: { className: string }) => (
@@ -85,21 +87,13 @@ export function SearchBar({
 
   return (
     <form action="/search" method="get" role="search" className="w-full max-w-2xl">
-      <div className="flex flex-col gap-2 rounded-[2rem] border-[3px] border-cola bg-lemon p-2 shadow-[6px_7px_0_var(--color-cola)] sm:flex-row sm:items-center sm:rounded-full">
+      <div className="relative flex flex-col gap-2 rounded-[2rem] border-[3px] border-cola bg-lemon p-2 shadow-[6px_7px_0_var(--color-cola)] sm:flex-row sm:items-center sm:rounded-full">
         <div className="flex min-w-0 flex-[1.3] items-center gap-2 pl-4">
           <SearchIcon className="size-6 shrink-0" />
           <label htmlFor="search-q" className="sr-only">
-            What are you craving? A drink or a vibe
+            What are you craving? A drink, a vibe or a cafe&rsquo;s name
           </label>
-          <input
-            id="search-q"
-            name="q"
-            type="search"
-            defaultValue={defaultQuery}
-            autoComplete="off"
-            placeholder="dirty chai, cozy study spot…"
-            className="min-w-0 flex-1 bg-transparent py-2 text-lg text-cola placeholder:text-cola/55 focus:outline-none"
-          />
+          <HeroQueryInput defaultQuery={defaultQuery} coords={coords} />
         </div>
         <div className="flex min-w-0 flex-1 items-center gap-2 border-t-2 border-dashed border-cola/30 pl-4 pt-2 sm:border-l-2 sm:border-t-0 sm:pt-0">
           <span aria-hidden className="text-lg">

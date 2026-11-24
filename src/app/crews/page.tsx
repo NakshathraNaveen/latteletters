@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { UserAvatar } from "@/components/CupAvatar";
 import { DripLoader } from "@/components/DripLoader";
 import { ActionButton, CreateCrewForm } from "@/components/crews/CrewControls";
+import { CrewsExplainer } from "@/components/crews/CrewsExplainer";
 import { btn } from "@/components/ui";
 import { acceptInvite, declineInvite } from "@/app/actions/crews";
 import { getCurrentUser } from "@/lib/auth";
@@ -30,15 +31,12 @@ async function Crews() {
   const user = await getCurrentUser();
   if (!user) {
     return (
-      <div className="mt-8 max-w-xl space-y-4 text-lg">
-        <p>
-          A crew is a little private group for you and your friends. Add cafes to a shared list, leave notes like &ldquo;the
-          matcha here!!&rdquo;, and heart each other&rsquo;s picks.
-        </p>
-        <Link href="/login?next=/crews" className={btn}>
+      <>
+        <CrewsExplainer />
+        <Link href="/login?next=/crews" className={`${btn} mt-10 inline-block`}>
           log in to start a crew ✦
         </Link>
-      </div>
+      </>
     );
   }
   if (!user.profile) redirect("/welcome?next=/crews");
@@ -84,10 +82,13 @@ async function Crews() {
           your crews
         </h2>
         {crews.length === 0 ? (
-          <p className="mt-3 max-w-xl">
-            No crews yet! Start one below, then send the invite link to your friends. If a friend already has a crew, ask them for
-            their link.
-          </p>
+          <>
+            <CrewsExplainer />
+            <p className="mt-8 max-w-xl font-semibold">
+              No crews yet! Start one below, then send the invite link to your friends. If a friend already has a crew, ask them for
+              their link.
+            </p>
+          </>
         ) : (
           <ul className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {crews.map((c, i) => (
@@ -123,6 +124,13 @@ async function Crews() {
           </ul>
         )}
       </section>
+
+      {crews.length > 0 && (
+        <details className="mt-12 max-w-4xl rounded-2xl border-2 border-dashed border-cola/50 p-4">
+          <summary className="cursor-pointer font-hand text-2xl">how do crews work again?</summary>
+          <CrewsExplainer />
+        </details>
+      )}
 
       <section aria-labelledby="start" className="mt-14 max-w-xl rounded-3xl border-2 border-cola bg-lemon/70 p-6">
         <h2 id="start" className="mb-4 font-display text-2xl">

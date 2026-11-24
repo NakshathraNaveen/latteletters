@@ -129,6 +129,7 @@ function toCafe(p: OsmPlace): Cafe | null {
     vegan: ["yes", "only", "limited"].includes(t["diet:vegan"] || ""),
     wheelchair: t.wheelchair === "yes",
     socials,
+    menuUrl: safeUrl(t["website:menu"] || t["contact:menu"] || t["menu:url"] || t.menu_url) ?? null,
     tags: [],
     accent: ACCENTS[p.id % ACCENTS.length],
   };

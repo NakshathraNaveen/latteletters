@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { ACCENT_BG, Barcode, CafeIdCard, cafeDrink, placeLine } from "@/components/CafeIdCard";
 import { DrinkCup } from "@/components/DrinkCup";
 import { DripLoader } from "@/components/DripLoader";
+import { MenuBoard } from "@/components/MenuBoard";
 import { NotesWall } from "@/components/NotesWall";
 import { SocialLinks } from "@/components/SocialLinks";
 import { ReportCafeButton } from "@/components/ReportCafeButton";
@@ -207,6 +208,10 @@ async function CafeContent({ params }: { params: PageProps<"/cafe/[id]">["params
       </header>
 
       <LaceDivider color="var(--color-hotpink)" className="mt-16 opacity-80" />
+
+      <Suspense fallback={null}>
+        <MenuBoard cafe={cafe} />
+      </Suspense>
 
       {/* ─────────── socials + map ─────────── */}
       <div className="mt-14 grid gap-12 md:grid-cols-2">

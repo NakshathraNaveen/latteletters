@@ -11,7 +11,7 @@ export type Social = {
 /**
  * A real cafe: from Overture Maps, OpenStreetMap (© OpenStreetMap
  * contributors), or added by someone on latteletters.
- * Neither has menus, prices or photos, so those aren't part of the model.
+ * Prices and photos aren't in the data; a menu link sometimes is (OSM).
  */
 export type Cafe = {
   /** URL-safe id: Overture "o-<uuid>", OSM "node-123456", or community "c-<uuid>" */
@@ -38,6 +38,8 @@ export type Cafe = {
   vegan: boolean;
   wheelchair: boolean;
   socials: Social[];
+  /** link to the cafe's own menu, when the map has one (OSM website:menu etc.) */
+  menuUrl?: string | null;
   /** vibe tags we can infer from the data (see lib/vibes.ts for the rules) */
   tags: VibeId[];
   /** colour for the cafe's ID card */
