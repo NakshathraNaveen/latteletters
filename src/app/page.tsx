@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Chips } from "@/components/Chips";
 import { DrinkCup } from "@/components/DrinkCup";
 import { NearMeButton } from "@/components/NearMeButton";
+import { CafeNameSearch } from "@/components/CafeNameSearch";
 import { SearchBar } from "@/components/SearchBar";
 import { MetalStar, Sparkle, Sticker } from "@/components/decor";
 import { HowItWorks } from "@/components/HowItWorks";
@@ -90,6 +91,10 @@ export default function Home() {
                 </svg>
               </p>
               <SearchBar />
+            </div>
+
+            <div className="mt-8">
+              <CafeNameSearch />
             </div>
 
             <Chips className="mt-6" />
