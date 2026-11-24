@@ -187,6 +187,19 @@ export async function reverseGeocode(lat: number, lng: number): Promise<Address 
   };
 }
 
+const CAFE_TYPES = new Set(["cafe", "coffee", "tea", "bubble_tea", "bakery", "pastry", "ice_cream", "fast_food", "confectionery"]);
+
+/**
+ * Cafes by name, for when Photon (the usual name search) is down. Nominatim
+ * needs the words spelled right, so this only catches the easy cases.
+ */
+export async function cafesByName(q: string): Promise<Cafe[]> {
+  "use cache";
+  cacheLife("days");
+  const hits = await nominatim<(NominatimPlace & { type?: string })[]>("/search", { q, limit: "15", extratags: "1", addressdetails: "1" });
+  return dedupeCafes(hits.filter((h) => CAFE_TYPES.has(h.type ?? "")).map(fromNominatim).filter((c): c is Cafe => c !== null));
+}
+
 /**
  * Nominatim returns at most 50 per call, so keep paging (excluding what we
  * already have) until a page comes back short: up to 2 pages for 1 km, 3 for

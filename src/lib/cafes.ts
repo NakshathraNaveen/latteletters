@@ -7,7 +7,7 @@
  */
 import { cacheLife } from "next/cache";
 import { communityCafeById, communityCafesNear, searchCommunityCafes } from "./community";
-import { cafesNear as osmCafesNear, distanceKm, osmCafeById, sameName } from "./osm";
+import { cafesByName, cafesNear as osmCafesNear, distanceKm, osmCafeById, sameName } from "./osm";
 import { matchScore } from "./match";
 import { overtureCafeById, overtureCafesNear, searchOvertureCafes } from "./overture";
 import type { Cafe } from "./types";
@@ -175,7 +175,9 @@ export async function findCafes(q: string, near: { lat: number; lng: number } | 
   const kindOf = (c: Cafe) => (c.cuisine.includes("bubble_tea") ? "boba" : c.cuisine.includes("tea") ? "tea room" : "cafe");
   const list: FoundCafe[] = [...community.map((c) => found(c, "added by the community")), ...fromOverture.map((c) => found(c, kindOf(c)))];
   const isDuplicate = (f: FoundCafe) => list.some((k) => sameName(k.name) === sameName(f.name) && distanceKm(k.lat, k.lng, f.lat, f.lng) < 0.15);
-  for (const f of osm.r) if (!isDuplicate(f)) list.push(f);
+  // Photon down? Nominatim still finds correctly spelled names
+  const fromOsm = osm.ok ? osm.r : (await cafesByName(q).catch(() => [] as Cafe[])).map((c) => found(c, kindOf(c)));
+  for (const f of fromOsm) if (!isDuplicate(f)) list.push(f);
 
   const sourceOrder = (f: FoundCafe) => (f.community ? 0 : f.id.startsWith("o-") ? 1 : 2);
   const ranked = list
